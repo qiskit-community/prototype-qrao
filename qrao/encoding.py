@@ -219,16 +219,6 @@ def qrac_state_prep_multiqubit(
                 raise ValueError(
                     f"Unused decision variable(s) in dvars: {remaining_dvars}"
                 ) from None
-        # Pad with zeros if there are fewer than `max_vars_per_qubit`.
-        # NOTE: This results in everything being encoded as an n-QRAC,
-        # even if there are fewer than n decision variables encoded in the qubit.
-        # In the future, we plan to make the encoding "adaptive" so that the
-        # optimal encoding is used on each qubit, based on the number of
-        # decision variables assigned to that specific qubit.
-        # However, we cannot do this until magic state rounding supports 2-QRACs.
-        while len(qi_bits) < max_vars_per_qubit:
-            qi_bits.append(0)
-
         ordered_bits.append(qi_bits)
 
     if remaining_dvars:
@@ -268,10 +258,9 @@ class QuantumRandomAccessEncoding:
     )
 
     def __init__(self, max_vars_per_qubit: int = 3):
-        try:
-            self._ops = self.OPERATORS[max_vars_per_qubit - 1]
-        except IndexError:
-            raise ValueError("max_vars_per_qubit must be 1, 2, or 3") from None
+        if max_vars_per_qubit not in (1, 2, 3):
+            raise ValueError("max_vars_per_qubit must be 1, 2, or 3")
+        self._max_vars_per_qubit = max_vars_per_qubit
 
         self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
         self._offset: Optional[float] = None
@@ -290,7 +279,7 @@ class QuantumRandomAccessEncoding:
 
     @property
     def max_vars_per_qubit(self) -> int:
-        return len(self._ops)
+        return self._max_vars_per_qubit
 
     @property
     def var2op(self) -> Dict[int, Tuple[int, PrimitiveOp]]:
@@ -359,7 +348,7 @@ class QuantumRandomAccessEncoding:
             if v in self._var2op:
                 raise ValueError("Added variables cannot collide with existing ones")
         # Modify the object now that error checking is complete.
-        n = len(self._ops)
+        n = self.max_vars_per_qubit
         old_num_qubits = len(self._q2vars)
         num_new_qubits = _ceildiv(len(variables), n)
         # Populate self._var2op and self._q2vars
@@ -368,16 +357,24 @@ class QuantumRandomAccessEncoding:
         for i, v in enumerate(variables):
             qubit, op = divmod(i, n)
             qubit_index = old_num_qubits + qubit
-            assert v not in self._var2op  # was checked above
-            self._var2op[v] = (qubit_index, self._ops[op])
             self._q2vars[qubit_index].append(v)
+        for i, v in enumerate(variables):
+            qubit, op = divmod(i, n)
+            qubit_index = old_num_qubits + qubit
+            assert v not in self._var2op  # was checked above
+            self._var2op[v] = (
+                qubit_index,
+                self.OPERATORS[len(self._q2vars[qubit_index]) - 1][op],
+            )
 
     def _add_term(self, w: float, *variables: int) -> None:
         self.ensure_thawed()
         # Eq. (31) in https://arxiv.org/abs/2111.03167v2 assumes a weight-2
         # Pauli operator.  To generalize, we replace the `d` in that equation
         # with `d_prime`, defined as follows:
-        d_prime = np.sqrt(self.max_vars_per_qubit) ** len(variables)
+        d_prime = np.sqrt(
+            np.prod([len(self.q2vars[self.var2op[x][0]]) for x in variables])
+        )
         op = w * d_prime * self.term2op(*variables)
         # We perform the following short-circuit *after* calling term2op so at
         # least we have confirmed that the user provided a valid variables list.

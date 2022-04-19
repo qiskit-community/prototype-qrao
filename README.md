@@ -4,6 +4,7 @@
 [![Qiskit Optimization](https://img.shields.io/badge/Qiskit%20Optimization-%E2%89%A5%200.3.0-6133BD)](https://github.com/Qiskit/qiskit-optimization)
 [![License](https://img.shields.io/github/license/qiskit-community/quantum-prototype-template?label=License)](https://github.com/qiskit-community/quantum-prototype-template/blob/main/LICENSE.txt)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000.svg)](https://github.com/psf/black)
+[![Tests](https://github.com/qiskit-community/prototype-qrao/actions/workflows/test_latest_versions.yml/badge.svg)](https://github.com/qiskit-community/prototype-qrao/actions/workflows/test_latest_versions.yml)
 
 <p align="center">
   <img src="docs/images/qrao_encoding.svg" width="500">

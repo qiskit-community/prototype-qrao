@@ -9,3 +9,17 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""Tests for qrao.utils"""
+
+import pytest
+
+from qrao.utils import get_random_maxcut_qp
+
+
+def test_get_random_maxcut_qp():
+    get_random_maxcut_qp(weight=1)
+    get_random_maxcut_qp(weight=-1)
+    get_random_maxcut_qp(weight=2)
+    with pytest.raises(ValueError):
+        get_random_maxcut_qp(weight=0)

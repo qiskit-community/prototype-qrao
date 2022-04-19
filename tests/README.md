@@ -1,4 +1,8 @@
-# Test environments
+# QRAO tests
+
+**tl;dr:** The tests for this prototype are written in a mixture of two different styles: [pytest] and [unittest].  There are some [doctests] throughout the code base, too, and the Jupyter notebooks are tested by [treon].  Everything is invoked by [tox].
+
+## Test environments
 
 This repository's tests and development automation tasks are organized using [tox], a command-line CI frontend for Python projects.  tox is typically used during local development and is also invoked from this repository's GitHub Actions [workflows](/.github/workflows/).
 
@@ -12,7 +16,7 @@ $ tox
 
 Environments for this repository are configured in [`tox.ini`] as described below.
 
-## Lint environment
+### Lint environment
 
 The `lint` environment ensures that the code meets basic coding standards, including
 
@@ -30,11 +34,11 @@ $ tox -elint
 
 If the _Black_ check fails, the [_Black_ environment](#black-environment) can be invoked to easily reformat all files as necessary.
 
-## _Black_ environment
+### _Black_ environment
 
 The command `tox -eblack` will reformat all files in the repository according to _Black_ style.
 
-## Test (py##) environments
+### Test (py##) environments
 
 The `py##` environments are the main test environments.  tox defines one for each version of Python.  For instance, the following command will run the tests on Python 3.8, Python 3.9, and Python 3.10:
 
@@ -46,7 +50,7 @@ First, these environments execute all tests using [pytest], which supports its o
 
 Second, these environments invoke [treon] to ensure that all Jupyter notebooks in the [`docs/`](/docs/) directory execute successfully.
 
-## Coverage environment
+### Coverage environment
 
 The `coverage` environment uses [Coverage.py] to ensure that the fraction of code tested by pytest is above some threshold (80% at the time of writing).
 

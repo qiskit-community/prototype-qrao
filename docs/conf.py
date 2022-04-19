@@ -18,15 +18,17 @@ Sphinx documentation builder
 
 # General options:
 from pathlib import Path
+import sys
 
-project = "Template project"
+project = "Quantum Random Access Optimization"
 copyright = "2022"  # pylint: disable=redefined-builtin
-author = ""
+author = "James R. Garrison et al."
 
 _rootdir = Path(__file__).parent.parent
+sys.path.insert(0, str(_rootdir))
 
 # The full version, including alpha/beta/rc tags
-release = (_rootdir / "prototype_template" / "VERSION.txt").read_text().strip()
+release = (_rootdir / "qrao" / "VERSION.txt").read_text().strip()
 # The short X.Y version
 version = release
 
@@ -48,7 +50,7 @@ numfig_format = {"table": "Table %s"}
 language = None
 pygments_style = "colorful"
 add_module_names = False
-modindex_common_prefix = ["template_project."]
+modindex_common_prefix = ["qrao."]
 
 # html theme options
 html_static_path = ["_static"]
@@ -63,4 +65,11 @@ autoclass_content = "both"
 nbsphinx_timeout = 180
 nbsphinx_execute = "always"
 nbsphinx_widgets_path = ""
-exclude_patterns = ["_build", "**.ipynb_checkpoints"]
+exclude_patterns = [
+    "_build",
+    "**.ipynb_checkpoints",
+    "tutorials",
+    "how_tos",
+    "test_notebooks",
+    "background",
+]

@@ -1,12 +1,13 @@
-.. prototype_template:
+.. _qrao:
 
-.. module:: prototype_template
+.. module:: qrao
 
-=============================
-Template API References
-=============================
+===================
+QRAO API References
+===================
 
-.. toctree::
-   :maxdepth: 1
-
-   template
+.. automodule:: qrao
+   :noindex:
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:

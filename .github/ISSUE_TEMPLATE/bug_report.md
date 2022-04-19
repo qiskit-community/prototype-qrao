@@ -6,15 +6,19 @@ labels: bug
 
 # Expected Behavior
 
-Please describe the behavior you are expecting
+Please describe the behavior you are expecting.
 
 # Current Behavior
 
-Please describe the current behavior of the software
+Please describe the current behavior of the software.
+
+# Failure Information
+
+Please provide information about the failure.
 
 ## Steps to Reproduce
 
-Please provide detailed steps for reproducing the issue. A simple, runnable code-snippet is highly preferred.
+A simple, runnable code snippet that reproduces the issue is highly preferred.
 
 ## Context
 
@@ -22,7 +26,6 @@ Please provide any relevant information about your setup. This is important in c
 
 * Python Version:
 * Operating System:
-* QRAO version:
 
 ## Failure Logs
 

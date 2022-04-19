@@ -2,7 +2,7 @@
 
 **We appreciate all kinds of help, so thank you!**
 
-## Contributing to Quantum Prototype Template
+## Contributing to Quantum Random Access Optimization
 
 Specific details for contributing to this project are outlined below.
 
@@ -10,7 +10,7 @@ Specific details for contributing to this project are outlined below.
 
 Users are encouraged to use GitHub Issues for reporting issues and requesting features.
 
-### Ask/Answer Questions and Discuss Quantum Prototype Template
+### Ask/Answer Questions and Discuss Quantum Random Access Optimization
 
 Users are encouraged to use GitHub Discussions for engaging with researchers, developers, and other users regarding this quantum prototype and the provided examples.
 
@@ -24,7 +24,7 @@ When submitting a pull request and you feel it is ready for review,
 please ensure that:
 
 1. The code follows the _code style_ of this project and successfully
-   passes the _unit tests_. Machine Learning uses [Pylint](https://www.pylint.org) and
+   passes the _unit tests_. QRAO uses [Pylint](https://www.pylint.org) and
    [PEP8](https://www.python.org/dev/peps/pep-0008) style guidelines.
 
    You can run

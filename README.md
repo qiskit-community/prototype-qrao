@@ -15,7 +15,7 @@
 * [Installation](#installation)
 * [Documentation](#documentation)
   - [Tutorials](docs/tutorials/)
-  - [How-Tos](docs/how_tos/)
+  - [How-Tos](docs/how_tos/) (coming soon)
   - [Background](docs/background/)
 * [Important Usage Notes](#important-usage-notes)
 * [How to Give Feedback](#how-to-give-feedback)
@@ -44,7 +44,7 @@ $ jupyter notebook
 Documentation is stored in the [`docs/`](docs/) directory.  It is organized according to the [Diátaxis framework](https://diataxis.fr/):
 
 - [Tutorials](docs/tutorials/)
-- [How-to guides](docs/how_tos/)
+- [How-to guides](docs/how_tos/) (coming soon)
 - [Explanation/background](docs/background/)
 
 ### About This Project

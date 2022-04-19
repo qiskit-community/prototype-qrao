@@ -15,7 +15,7 @@ The remainder of this document will assume you are in the root directory of the 
 
 ## Set up a virtual Python Environment
 
-Next, we assume that [Python](https://www.python.org/) 3.7 or higher is installed.  It is recommended to use a Python virtual environment that is dedicated to working with `qrao`.  The steps in the remainder of this tutorial will assume that this environment is activated using either method.
+Next, we assume that [Python](https://www.python.org/) 3.6 or higher is installed.  It is recommended to use a Python virtual environment that is dedicated to working with `qrao`.  The steps in the remainder of this tutorial will assume that this environment is activated using either method.
 
 ### Option 1: venv (included in Python)
 

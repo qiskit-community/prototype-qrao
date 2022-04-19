@@ -45,9 +45,9 @@ $ jupyter notebook
 
 Documentation is stored in the [`docs/`](docs/) directory.  It is organized according to the [Diátaxis framework](https://diataxis.fr/):
 
-- [Tutorials](docs/tutorials/)
-- [How-to guides](docs/how_tos/) (coming soon)
-- [Explanation/background](docs/background/)
+- [Tutorials](docs/tutorials/): longer examples of end-to-end usage
+- [How-to guides](docs/how_tos/) (coming soon): targeted answers to common questions
+- [Background material](docs/background/): in-depth exploration of theoretical concepts
 
 ### About This Project
 
@@ -73,13 +73,6 @@ Quantum random access optimization is composed of two main steps as shown in the
 <p align="center">
   <img src="docs/images/qrao_flowchart.svg">
 </p>
-
-***Documentation***
-
-The QRAO module includes documentation split into
-- [Tutorials](docs/tutorials): longer examples of end-to-end usage
-- [How-to guides](docs/how_tos): targeted answers to common questions
-- [Background material](docs/background): in-depth exploration of theoretical concepts
 
 ----------------------------------------------------------------------------------------------------
 

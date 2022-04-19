@@ -55,7 +55,7 @@ The Quantum Random Access Optimization (QRAO) module is designed to enable users
 
 The figure at the top of this page illustrates a simple example of encoding a degree-3 graph with 10 vertices into just 4 qubits, instead of 10. The graph is colored (with a largest-degree-first greedy algorithm) such that adjacent vertices are of a different color. Then, vertices of a given color are encoded using a (3,1,p) QRAC so that a maximum of 3 vertices are associated with a single qubit. Check out the [background documentation](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/background/quantum_relaxations.ipynb) to learn more about the coloring algorithm, QRACs, and building associated local quantum Hamiltonians.
 
-This project evolved out of research at IBM Quantum on [Approximate Solutions of Combinatorial Problems via Quantum Relaxations](https://arxiv.org/abs/2111.03167)
+This project evolved out of research at IBM Quantum on [Approximate Solutions of Combinatorial Problems via Quantum Relaxations](https://arxiv.org/abs/2111.03167).
 
 ***Problem Statement***
 
@@ -92,13 +92,13 @@ We plan to make Magic Rounding compatible with additional encoding options in th
 
 #### Supported Problem Types
 
-As with `qiskit-optimization`, this module currently only supports input problems that are of type `QuadraticProgram` and that can be converted to a QUBO. Furthermore, the conversion to a QUBO must be made _before_ encoding the problem into a quantum Hamiltonian with `QuantumRandomAccessEncoding` (refer to the tutorial to [see an example of this](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/tutorials/01_getting_started.ipynb))
+As with `qiskit-optimization`, this module currently only supports input problems that are of type `QuadraticProgram` and that can be converted to a QUBO. Furthermore, the conversion to a QUBO must be made _before_ encoding the problem into a quantum Hamiltonian with `QuantumRandomAccessEncoding` (refer to the tutorial to [see an example of this](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/tutorials/01_getting_started.ipynb)).
 
 Check out the documentation for `qiskit-optimization` to see [how to construct a `QuadraticProgram`](https://github.com/Qiskit/qiskit-optimization/blob/main/docs/tutorials/01_quadratic_program.ipynb) and [apply converters to it](https://github.com/Qiskit/qiskit-optimization/blob/main/docs/tutorials/02_converters_for_quadratic_programs.ipynb) (including a [wrapper that converts a `QuadraticProgram` to a QUBO](https://github.com/Qiskit/qiskit-optimization/blob/main/qiskit_optimization/converters/quadratic_program_to_qubo.py)).
 
 #### Statevector Simulator Usage
 
-If you would like to use a statevector simulation for Magic Rounding, we advise using the new `AerSimulator` ([source](https://github.com/Qiskit/qiskit-aer/blob/main/qiskit/providers/aer/backends/aer_simulator.py)) with the `'statevector'` method and _not_ the ([soon-to-be-deprecated](https://github.com/Qiskit/qiskit-aer/blob/73b29ad75a0d206c68aff42d4d63adf3a42b61b5/qiskit/providers/aer/backends/statevector_simulator.py#L178)) `StatevectorSimulator`. The latter suffers from a very poor runtime scaling when used with the Magic Rounding scheme, as it effectively brute-forces all possible solutions.
+If you would like to use a statevector simulation for Magic Rounding, we advise using the new `AerSimulator` ([source](https://github.com/Qiskit/qiskit-aer/blob/main/qiskit/providers/aer/backends/aer_simulator.py)) with the `"statevector"` method and _not_ the ([soon-to-be-deprecated](https://github.com/Qiskit/qiskit-aer/blob/73b29ad75a0d206c68aff42d4d63adf3a42b61b5/qiskit/providers/aer/backends/statevector_simulator.py#L178)) `StatevectorSimulator`. The latter suffers from a very poor runtime scaling when used with the Magic Rounding scheme, as it effectively brute-forces all possible solutions.
 
 ----------------------------------------------------------------------------------------------------
 
@@ -121,14 +121,14 @@ For information on how to contribute to this project, please take a look at our 
 
 ### Acknowledgements
 
-This prototype is based on the research described in [[1]](./README.md#references).
+This prototype is based on the research described in [[1]](#references).
 
 The initial codebase was written by Takashi Imamichi, Toshinari Itoko, and Bryce Fuller.
 
 
 ----------------------------------------------------------------------------------------------------
 
-### About prototypes
+### About Prototypes
 
 Prototypes is a collaboration between developers and researchers that will give users access to prototypes from cutting-edge research in areas like quantum simulation and machine learning. These software packages are built on top of, and may eventually be integrated into the Qiskit SDK. They are a contribution as part of the Qiskit community.
 

@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>qrao.encoding &#8212; Quantum Random Access Optimization 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/jupyter-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/thebelab.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/thebelab-helper.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.1/dist/embed-amd.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="qrao.encoding.z_to_31p_qrac_basis_circuit" href="qrao.encoding.z_to_31p_qrac_basis_circuit.html" />
+    <link rel="prev" title="QRAO API References" href="../apidocs/index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-qrao.encoding">
+<span id="qrao-encoding"></span><h1>qrao.encoding<a class="headerlink" href="#module-qrao.encoding" title="Permalink to this headline">¶</a></h1>
+<p>Quantum Random Access Encoding module.</p>
+<p>Contains code dealing with QRACs (quantum random access codes) and preparation
+of such states.</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="qrao.encoding.z_to_31p_qrac_basis_circuit.html#qrao.encoding.z_to_31p_qrac_basis_circuit" title="qrao.encoding.z_to_31p_qrac_basis_circuit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_to_31p_qrac_basis_circuit</span></code></a>(basis)</p></td>
+<td><p>Return the basis rotation corresponding to the (3,1,p)-QRAC</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qrao.encoding.z_to_21p_qrac_basis_circuit.html#qrao.encoding.z_to_21p_qrac_basis_circuit" title="qrao.encoding.z_to_21p_qrac_basis_circuit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_to_21p_qrac_basis_circuit</span></code></a>(basis)</p></td>
+<td><p>Return the basis rotation corresponding to the (2,1,p)-QRAC</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qrao.encoding.qrac_state_prep_1q.html#qrao.encoding.qrac_state_prep_1q" title="qrao.encoding.qrac_state_prep_1q"><code class="xref py py-obj docutils literal notranslate"><span class="pre">qrac_state_prep_1q</span></code></a>(*m)</p></td>
+<td><p>Prepare a single qubit QRAC state</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qrao.encoding.qrac_state_prep_multiqubit.html#qrao.encoding.qrac_state_prep_multiqubit" title="qrao.encoding.qrac_state_prep_multiqubit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">qrac_state_prep_multiqubit</span></code></a>(dvars, q2vars, ...)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CircuitStateFn</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qrao.encoding.QuantumRandomAccessEncoding.html#qrao.encoding.QuantumRandomAccessEncoding" title="qrao.encoding.QuantumRandomAccessEncoding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantumRandomAccessEncoding</span></code></a>([max_vars_per_qubit])</p></td>
+<td><p>This class specifies a Quantum Random Access Code that can be used to encode the binary variables of a QUBO (quadratic unconstrained binary optimization problem).</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">q2vars_from_var2op</span></code>(var2op)</p></td>
+<td><p>Calculate q2vars given var2op</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qrao.encoding.qrac_state_prep_1q.html#qrao.encoding.qrac_state_prep_1q" title="qrao.encoding.qrac_state_prep_1q"><code class="xref py py-obj docutils literal notranslate"><span class="pre">qrac_state_prep_1q</span></code></a>(*m)</p></td>
+<td><p>Prepare a single qubit QRAC state</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qrao.encoding.qrac_state_prep_multiqubit.html#qrao.encoding.qrac_state_prep_multiqubit" title="qrao.encoding.qrac_state_prep_multiqubit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">qrac_state_prep_multiqubit</span></code></a>(dvars, q2vars, ...)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CircuitStateFn</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="qrao.encoding.z_to_21p_qrac_basis_circuit.html#qrao.encoding.z_to_21p_qrac_basis_circuit" title="qrao.encoding.z_to_21p_qrac_basis_circuit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_to_21p_qrac_basis_circuit</span></code></a>(basis)</p></td>
+<td><p>Return the basis rotation corresponding to the (2,1,p)-QRAC</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="qrao.encoding.z_to_31p_qrac_basis_circuit.html#qrao.encoding.z_to_31p_qrac_basis_circuit" title="qrao.encoding.z_to_31p_qrac_basis_circuit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">z_to_31p_qrac_basis_circuit</span></code></a>(basis)</p></td>
+<td><p>Return the basis rotation corresponding to the (3,1,p)-QRAC</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="qrao.encoding.QuantumRandomAccessEncoding.html#qrao.encoding.QuantumRandomAccessEncoding" title="qrao.encoding.QuantumRandomAccessEncoding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuantumRandomAccessEncoding</span></code></a>([max_vars_per_qubit])</p></td>
+<td><p>This class specifies a Quantum Random Access Code that can be used to encode the binary variables of a QUBO (quadratic unconstrained binary optimization problem).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="../index.html">Quantum Random Access Optimization</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../apidocs/index.html">API References</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../apidocs/index.html">QRAO API References</a><ul>
+      <li>Previous: <a href="../apidocs/index.html" title="previous chapter">QRAO API References</a></li>
+      <li>Next: <a href="qrao.encoding.z_to_31p_qrac_basis_circuit.html" title="next chapter">qrao.encoding.z_to_31p_qrac_basis_circuit</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/stubs/qrao.encoding.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

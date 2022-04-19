@@ -1,0 +1,30 @@
+﻿qrao.utils
+==========
+
+.. automodule:: qrao.utils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_random_maxcut_docplex_model
+      get_random_maxcut_qp
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

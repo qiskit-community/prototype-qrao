@@ -1,0 +1,33 @@
+﻿qrao.MagicRounding
+==================
+
+.. currentmodule:: qrao
+
+.. autoclass:: MagicRounding
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~MagicRounding.__init__
+      ~MagicRounding.round
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MagicRounding.ASSIGN
+      ~MagicRounding.XYZ
+      ~MagicRounding.basis_sampling
+      ~MagicRounding.quantum_instance
+      ~MagicRounding.shots
+   
+   

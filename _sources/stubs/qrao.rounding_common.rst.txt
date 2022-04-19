@@ -1,0 +1,32 @@
+﻿qrao.rounding\_common
+=====================
+
+.. automodule:: qrao.rounding_common
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      RoundingContext
+      RoundingResult
+      RoundingScheme
+      RoundingSolutionSample
+   
+   
+
+   
+   
+   
+
+
+

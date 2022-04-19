@@ -1,0 +1,6 @@
+qrao.encoding.qrac\_state\_prep\_multiqubit
+===========================================
+
+.. currentmodule:: qrao.encoding
+
+.. autofunction:: qrac_state_prep_multiqubit

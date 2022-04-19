@@ -1,0 +1,39 @@
+﻿qrao.encoding
+=============
+
+.. automodule:: qrao.encoding
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      q2vars_from_var2op
+      qrac_state_prep_1q
+      qrac_state_prep_multiqubit
+      z_to_21p_qrac_basis_circuit
+      z_to_31p_qrac_basis_circuit
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      QuantumRandomAccessEncoding
+   
+   
+
+   
+   
+   
+
+
+

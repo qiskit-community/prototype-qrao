@@ -1,0 +1,6 @@
+qrao.encoding.z\_to\_31p\_qrac\_basis\_circuit
+==============================================
+
+.. currentmodule:: qrao.encoding
+
+.. autofunction:: z_to_31p_qrac_basis_circuit

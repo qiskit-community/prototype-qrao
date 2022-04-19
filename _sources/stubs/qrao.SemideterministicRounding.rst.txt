@@ -1,0 +1,23 @@
+﻿qrao.SemideterministicRounding
+==============================
+
+.. currentmodule:: qrao
+
+.. autoclass:: SemideterministicRounding
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SemideterministicRounding.__init__
+      ~SemideterministicRounding.round
+   
+   
+
+   
+   
+   

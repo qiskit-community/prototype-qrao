@@ -1,0 +1,44 @@
+qrao.encoding.QuantumRandomAccessEncoding
+=========================================
+
+.. currentmodule:: qrao.encoding
+
+.. autoclass:: QuantumRandomAccessEncoding
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~QuantumRandomAccessEncoding.__init__
+      ~QuantumRandomAccessEncoding.encode
+      ~QuantumRandomAccessEncoding.ensure_thawed
+      ~QuantumRandomAccessEncoding.freeze
+      ~QuantumRandomAccessEncoding.state_prep
+      ~QuantumRandomAccessEncoding.term2op
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QuantumRandomAccessEncoding.OPERATORS
+      ~QuantumRandomAccessEncoding.compression_ratio
+      ~QuantumRandomAccessEncoding.frozen
+      ~QuantumRandomAccessEncoding.max_vars_per_qubit
+      ~QuantumRandomAccessEncoding.minimum_recovery_probability
+      ~QuantumRandomAccessEncoding.num_qubits
+      ~QuantumRandomAccessEncoding.num_vars
+      ~QuantumRandomAccessEncoding.offset
+      ~QuantumRandomAccessEncoding.problem
+      ~QuantumRandomAccessEncoding.q2vars
+      ~QuantumRandomAccessEncoding.qubit_op
+      ~QuantumRandomAccessEncoding.var2op
+   
+   

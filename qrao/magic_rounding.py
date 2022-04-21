@@ -12,7 +12,7 @@
 
 """Magic bases rounding"""
 
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 import numbers
 import time
 import warnings

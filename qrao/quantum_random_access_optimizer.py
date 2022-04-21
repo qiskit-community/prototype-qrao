@@ -115,6 +115,19 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         encoding: QuantumRandomAccessEncoding,
         rounding_scheme: Optional[RoundingScheme] = None,
     ):
+        """
+        Args:
+
+            min_eigen_solver: The minimum eigensolver to use for solving the
+                relaxed problem (typically an instance of ``VQE`` or ``QAOA``).
+
+            encoding: The ``QuantumRandomAccessEncoding``, which must have
+                already been ``encode()``ed with a ``QuadraticProgram``.
+
+            rounding_scheme: The rounding scheme.  If ``None`` is provided,
+                ``SemideterministicRounding()`` will be used.
+
+        """
         self.min_eigen_solver = min_eigen_solver
         self.encoding = encoding
         if rounding_scheme is None:

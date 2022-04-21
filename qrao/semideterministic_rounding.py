@@ -12,7 +12,7 @@
 
 """Semideterministic rounding"""
 
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -39,11 +39,18 @@ class SemideterministicRounding(RoundingScheme):
 
     """
 
-    def __init__(self, *, seed=None):
+    def __init__(self, *, seed: Optional[int] = None):
+        """
+        Args:
+            seed: Seed for random number generator, which is used to resolve
+                expectation values near zero to either +1 or -1.
+        """
         super().__init__()
         self.rng = np.random.RandomState(seed)
 
     def round(self, ctx: RoundingContext) -> SemideterministicRoundingResult:
+        """Perform semideterministic rounding"""
+
         trace_values = ctx.trace_values
 
         if trace_values is None:

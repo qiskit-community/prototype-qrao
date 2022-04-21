@@ -115,9 +115,30 @@ class MagicRounding(RoundingScheme):
         self,
         quantum_instance: QuantumInstance,
         *,
-        seed=None,
-        basis_sampling="uniform",
+        basis_sampling: str = "uniform",
+        seed: Optional[int] = None,
     ):
+        """
+        Args:
+
+            quantum_instance: Provides the ``Backend`` for quantum execution
+                and the ``shots`` count (i.e., the number of samples to collect
+                from the magic bases).
+
+            basis_sampling: Method to use for sampling the magic bases.  Must
+                be either ``"uniform"`` (default) or ``"weighted"``.
+                ``"uniform"`` samples all magic bases uniformly, and is the
+                method described in https://arxiv.org/abs/2111.03167v2.
+                ``"weighted"`` attempts to choose bases strategically using the
+                Pauli expectation values from the minimum eigensolver.
+                However, the approximation bounds given in
+                https://arxiv.org/abs/2111.03167v2 apply only to ``"uniform"``
+                sampling.
+
+            seed: Seed for random number generator, which is used to sample the
+                magic bases.
+
+        """
         if basis_sampling not in ("uniform", "weighted"):
             raise ValueError(
                 f"'{basis_sampling}' is not an implemented sampling method. "
@@ -130,14 +151,17 @@ class MagicRounding(RoundingScheme):
 
     @property
     def shots(self) -> int:
+        """Shots count as configured by the given ``quantum_instance``."""
         return self.quantum_instance.run_config.shots
 
     @property
     def basis_sampling(self):
+        """Basis sampling method (either ``"uniform"`` or ``"weighted"``)."""
         return self._basis_sampling
 
     @property
     def quantum_instance(self) -> QuantumInstance:
+        """Provides the ``Backend`` and the ``shots`` (samples) count."""
         return self._quantum_instance
 
     @quantum_instance.setter
@@ -326,6 +350,8 @@ class MagicRounding(RoundingScheme):
         return bases, basis_shots
 
     def round(self, ctx: RoundingContext) -> MagicRoundingResult:
+        """Perform magic rounding"""
+
         if ctx._encoding is not None and ctx._encoding.max_vars_per_qubit != 3:
             raise ValueError(
                 "Currently, MagicRounding only supports 3-QRACs, "

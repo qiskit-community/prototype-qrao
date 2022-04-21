@@ -13,6 +13,7 @@
 
 ### Table of Contents
 
+* [About This Project](#about-this-project)
 * [Installation](#installation)
 * [Documentation](#documentation)
   - [Tutorials](docs/tutorials/)
@@ -27,27 +28,6 @@
 * [License](#license)
 
 ----------------------------------------------------------------------------------------------------
-
-### Installation
-
-Python 3.6 or higher is required.  Full installation instructions are provided in [`INSTALL.md`](INSTALL.md), but here is a quick summary:
-
-```sh
-$ git clone https://github.com/qiskit-community/prototype-qrao.git
-$ cd qrao
-$ python3 -m venv venv
-$ source venv/bin/activate
-$ pip install tox notebook -e .
-$ jupyter notebook
-```
-
-### Documentation
-
-Documentation is stored in the [`docs/`](docs/) directory.  It is organized according to the [Diátaxis framework](https://diataxis.fr/):
-
-- [Tutorials](docs/tutorials/): longer examples of end-to-end usage
-- [How-to guides](docs/how_tos/) (coming soon): targeted answers to common questions
-- [Background material](docs/background/): in-depth exploration of theoretical concepts
 
 ### About This Project
 
@@ -73,6 +53,31 @@ Quantum random access optimization is composed of two main steps as shown in the
 <p align="center">
   <img src="docs/images/qrao_flowchart.svg">
 </p>
+
+----------------------------------------------------------------------------------------------------
+
+### Installation
+
+Python 3.6 or higher is required.  Full installation instructions are provided in [`INSTALL.md`](INSTALL.md), but here is a quick summary:
+
+```sh
+$ git clone https://github.com/qiskit-community/prototype-qrao.git
+$ cd qrao
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip install tox notebook -e .
+$ jupyter notebook
+```
+
+----------------------------------------------------------------------------------------------------
+
+### Documentation
+
+Documentation is stored in the [`docs/`](docs/) directory.  It is organized according to the [Diátaxis framework](https://diataxis.fr/):
+
+- [Tutorials](docs/tutorials/): longer examples of end-to-end usage
+- [How-to guides](docs/how_tos/) (coming soon): targeted answers to common questions
+- [Background material](docs/background/): in-depth exploration of theoretical concepts
 
 ----------------------------------------------------------------------------------------------------
 

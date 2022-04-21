@@ -101,7 +101,7 @@ class MagicRounding(RoundingScheme):
 
     # This information should really come from the encoding.
     # Right now it's basically hard coded for one QRAC.
-    ASSIGN = (
+    _ASSIGN = (
         {"0": (0, 0, 0), "1": (1, 1, 1)},  # IMI
         {"0": (0, 1, 1), "1": (1, 0, 0)},  # XMX
         {"0": (1, 0, 1), "1": (0, 1, 0)},  # YMY
@@ -109,7 +109,7 @@ class MagicRounding(RoundingScheme):
     )
 
     # Pauli op string to label index in ops (assumes 3-QRAC)
-    XYZ = {"X": 0, "Y": 1, "Z": 2}
+    _XYZ = {"X": 0, "Y": 1, "Z": 2}
 
     def __init__(
         self,
@@ -166,10 +166,10 @@ class MagicRounding(RoundingScheme):
             q, op = var2op[var]
             # get the index in [0,1,2] corresponding
             # to each possible Pauli.
-            op_index = self.XYZ[str(op)]
+            op_index = self._XYZ[str(op)]
             # get the bits associated to this magic basis'
             # measurement outcomes
-            bit_outcomes = self.ASSIGN[basis[q]]
+            bit_outcomes = self._ASSIGN[basis[q]]
             # select which measurement outcome we observed
             # this gives up to 3 bits of information
             magic_bits = bit_outcomes[bits[q]]

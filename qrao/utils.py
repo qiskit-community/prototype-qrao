@@ -72,7 +72,7 @@ def get_random_maxcut_docplex_model(
         )
     )
 
-    if draw:
+    if draw:  # pragma: no cover (tested by treon)
         nx.draw(graph, with_labels=True, font_color="whitesmoke")
 
     return mod

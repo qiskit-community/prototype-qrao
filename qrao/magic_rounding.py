@@ -379,6 +379,10 @@ class MagicRounding(RoundingScheme):
                     "to be available, but they are not."
                 )
             bases, basis_shots = self._sample_bases_weighted(ctx.q2vars, trace_values)
+        else:  # pragma: no cover
+            raise NotImplementedError(
+                f'No such basis sampling method: "{self.basis_sampling}".'
+            )
 
         assert self.shots == np.sum(basis_shots)
         # For each of the Magic Bases sampled above, measure

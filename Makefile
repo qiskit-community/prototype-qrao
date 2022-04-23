@@ -5,10 +5,10 @@ error:
 	@exit 2
 
 test: lint
-	tox -epy37
+	tox -epy3
 
 test-backends: lint
-	tox -epy37 -- --run-backend-tests
+	tox -epy3 -- --run-backend-tests
 
 coverage: lint
 	tox -ecoverage

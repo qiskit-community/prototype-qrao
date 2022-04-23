@@ -2,6 +2,18 @@
 
 **tl;dr:** The tests for this prototype are written in a mixture of two different styles: [pytest] and [unittest].  There are some [doctests] throughout the code base, too, and the Jupyter notebooks are tested by [treon].  Everything is invoked by [tox].
 
+To run the linter and tests on a single version of Python:
+
+```sh
+$ tox -elint,py3
+```
+
+If the linter complains about code formatting, run:
+
+```sh
+$ tox -eblack
+```
+
 ## Test environments
 
 This repository's tests and development automation tasks are organized using [tox], a command-line CI frontend for Python projects.  tox is typically used during local development and is also invoked from this repository's GitHub Actions [workflows](/.github/workflows/).

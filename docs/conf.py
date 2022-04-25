@@ -20,6 +20,8 @@ Sphinx documentation builder
 from pathlib import Path
 import sys
 
+from importlib_metadata import version as metadata_version
+
 project = "Quantum Random Access Optimization"
 copyright = "2022"  # pylint: disable=redefined-builtin
 author = "James R. Garrison et al."
@@ -28,9 +30,9 @@ _rootdir = Path(__file__).parent.parent
 sys.path.insert(0, str(_rootdir))
 
 # The full version, including alpha/beta/rc tags
-release = (_rootdir / "qrao" / "VERSION.txt").read_text().strip()
+release = metadata_version("qrao")
 # The short X.Y version
-version = release
+version = version = ".".join(release.split(".")[:2])
 
 extensions = [
     "sphinx.ext.napoleon",

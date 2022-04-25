@@ -27,6 +27,8 @@ Quantum Random Access Optimization.
     utils
 """
 
+from importlib_metadata import version as metadata_version, PackageNotFoundError
+
 from .encoding import QuantumRandomAccessEncoding
 
 from .rounding_common import RoundingScheme, RoundingContext, RoundingResult
@@ -40,3 +42,10 @@ from .quantum_random_access_optimizer import (
     QuantumRandomAccessOptimizer,
     QuantumRandomAccessOptimizationResult,
 )
+
+
+try:
+    __version__ = metadata_version("prototype_template")
+except PackageNotFoundError:  # pragma: no cover
+    # package is not installed
+    pass

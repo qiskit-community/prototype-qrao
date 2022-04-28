@@ -30,6 +30,8 @@ from qrao.encoding import (
     z_to_21p_qrac_basis_circuit,
 )
 
+# pylint: disable=protected-access
+
 
 def test_qrac_unsupported_encoding():
     with pytest.raises(ValueError):

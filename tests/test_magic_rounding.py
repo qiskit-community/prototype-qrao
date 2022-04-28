@@ -36,6 +36,8 @@ from qrao import (
 )
 from qrao.encoding import qrac_state_prep_1q, q2vars_from_var2op
 
+# pylint: disable=protected-access
+
 
 class TestMagicRounding(unittest.TestCase):
     """Test MagicRounding Class"""

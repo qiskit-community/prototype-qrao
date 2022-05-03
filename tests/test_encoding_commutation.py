@@ -28,26 +28,17 @@ from qrao.utils import get_random_maxcut_qp
 # Corresponds to the "check encoding problem commutation" how-to notebook
 
 
-def check_encoding_problem_commutation(
-    encoding: QuantumRandomAccessEncoding, verbose=False
-):
+def check_encoding_problem_commutation(encoding: QuantumRandomAccessEncoding):
     if not encoding.num_vars:
         raise ValueError("Empty encoding passed to check_encoding_problem_commutation")
 
     problem = encoding.problem
     encoded_problem = encoding.qubit_op  # H
-    # print(problem)
 
     # Offset accounts for the value of the encoded Hamiltonian's
     # identity coefficient. This term need not be evaluated directly as
     # Tr[I•rho] is always 1.
     offset = encoding.offset
-    if verbose:
-        print("Encoded Problem:\n=================")
-        print(encoded_problem)
-        print(f"Offset = {offset}")
-        print("{qubit : dvars} = ", encoding.q2vars)
-        print("")
 
     violations = {}
     non_violations = {}

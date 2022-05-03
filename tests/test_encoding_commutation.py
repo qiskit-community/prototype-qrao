@@ -73,13 +73,13 @@ def check_encoding_problem_commutation(
             non_violations.update({str_dvars: (obj_val, encoded_obj_val)})
         else:
             violations.update({str_dvars: (obj_val, encoded_obj_val)})
-    return violations, non_violations, offset
+    return violations, non_violations
 
 
 def check_problem_commutation(problem: QuadraticProgram, max_vars_per_qubit: int):
     encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=max_vars_per_qubit)
     encoding.encode(problem)
-    violations, non_violations, _ = check_encoding_problem_commutation(encoding)
+    violations, non_violations = check_encoding_problem_commutation(encoding)
     assert len(violations) + len(non_violations) == 2**encoding.num_vars
     assert len(violations) == 0
 

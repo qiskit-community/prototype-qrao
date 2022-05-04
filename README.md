@@ -2,9 +2,10 @@
 [![Python](https://img.shields.io/badge/Python-3.6%20%7C%203.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-informational)](https://www.python.org/)
 [![Qiskit](https://img.shields.io/badge/Qiskit-%E2%89%A5%200.34.2-6133BD)](https://github.com/Qiskit/qiskit)
 [![Qiskit Optimization](https://img.shields.io/badge/Qiskit%20Optimization-%E2%89%A5%200.3.0-6133BD)](https://github.com/Qiskit/qiskit-optimization)
-[![License](https://img.shields.io/github/license/qiskit-community/quantum-prototype-template?label=License)](https://github.com/qiskit-community/prototype-qrao/blob/main/LICENSE.txt)
+[![License](https://img.shields.io/github/license/qiskit-community/prototype-qrao?label=License)](https://github.com/qiskit-community/prototype-qrao/blob/main/LICENSE.txt)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000.svg)](https://github.com/psf/black)
 [![Tests](https://github.com/qiskit-community/prototype-qrao/actions/workflows/test_latest_versions.yml/badge.svg)](https://github.com/qiskit-community/prototype-qrao/actions/workflows/test_latest_versions.yml)
+[![Coverage](https://coveralls.io/repos/github/qiskit-community/prototype-qrao/badge.svg?branch=main)](https://coveralls.io/github/qiskit-community/prototype-qrao?branch=main)
 
 <p align="center">
   <img src="docs/images/qrao_encoding.svg" width="500">

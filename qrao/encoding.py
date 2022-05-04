@@ -566,6 +566,10 @@ class EncodingCommutationVerifier:
     def __len__(self) -> int:
         return 2**self._encoding.num_vars
 
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+
     def __getitem__(self, i: int) -> Tuple[str, float, float]:
         if i not in range(len(self)):
             raise IndexError(f"Index out of range: {i}")

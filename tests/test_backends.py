@@ -24,7 +24,6 @@ from qiskit.algorithms.optimizers import SPSA
 from qiskit_optimization.algorithms import OptimizationResultStatus
 from qiskit_optimization.translators import from_docplex_mp
 from qiskit_ibm_provider import IBMProvider, least_busy, IBMAccountError
-from qiskit_ibm_provider.accounts.exceptions import AccountsError
 
 from qrao import (
     QuantumRandomAccessOptimizer,
@@ -104,7 +103,7 @@ def test_magic_rounding_on_hardware_backend(my_encoding, my_ansatz):
     """Test *magic rounding* on a hardware backend, if available."""
     try:
         provider = IBMProvider()
-    except (AccountsError, IBMAccountError):
+    except IBMAccountError:
         pytest.skip("No hardware backend available")
     print(f"Encoding requires {my_encoding.num_qubits} qubits")
     backend = least_busy(

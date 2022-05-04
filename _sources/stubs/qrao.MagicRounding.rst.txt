@@ -24,8 +24,6 @@
 
    .. autosummary::
    
-      ~MagicRounding.ASSIGN
-      ~MagicRounding.XYZ
       ~MagicRounding.basis_sampling
       ~MagicRounding.quantum_instance
       ~MagicRounding.shots

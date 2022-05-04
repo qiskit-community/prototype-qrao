@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>qrao.magic_rounding &#8212; Quantum Random Access Optimization 0.0.0 documentation</title>
+    <title>qrao.magic_rounding &#8212; Quantum Random Access Optimization 0.1.dev1+gc3c39a3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
@@ -51,7 +51,7 @@
 
 <span class="sd">&quot;&quot;&quot;Magic bases rounding&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -140,7 +140,7 @@
 
     <span class="c1"># This information should really come from the encoding.</span>
     <span class="c1"># Right now it&#39;s basically hard coded for one QRAC.</span>
-    <span class="n">ASSIGN</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">_ASSIGN</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)},</span>  <span class="c1"># IMI</span>
         <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)},</span>  <span class="c1"># XMX</span>
         <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)},</span>  <span class="c1"># YMY</span>
@@ -148,15 +148,36 @@
     <span class="p">)</span>
 
     <span class="c1"># Pauli op string to label index in ops (assumes 3-QRAC)</span>
-    <span class="n">XYZ</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="n">_XYZ</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
 
 <div class="viewcode-block" id="MagicRounding.__init__"><a class="viewcode-back" href="../../stubs/qrao.MagicRounding.html#qrao.MagicRounding.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">quantum_instance</span><span class="p">:</span> <span class="n">QuantumInstance</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">basis_sampling</span><span class="o">=</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
+        <span class="n">basis_sampling</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+
+<span class="sd">            quantum_instance: Provides the ``Backend`` for quantum execution</span>
+<span class="sd">                and the ``shots`` count (i.e., the number of samples to collect</span>
+<span class="sd">                from the magic bases).</span>
+
+<span class="sd">            basis_sampling: Method to use for sampling the magic bases.  Must</span>
+<span class="sd">                be either ``&quot;uniform&quot;`` (default) or ``&quot;weighted&quot;``.</span>
+<span class="sd">                ``&quot;uniform&quot;`` samples all magic bases uniformly, and is the</span>
+<span class="sd">                method described in https://arxiv.org/abs/2111.03167v2.</span>
+<span class="sd">                ``&quot;weighted&quot;`` attempts to choose bases strategically using the</span>
+<span class="sd">                Pauli expectation values from the minimum eigensolver.</span>
+<span class="sd">                However, the approximation bounds given in</span>
+<span class="sd">                https://arxiv.org/abs/2111.03167v2 apply only to ``&quot;uniform&quot;``</span>
+<span class="sd">                sampling.</span>
+
+<span class="sd">            seed: Seed for random number generator, which is used to sample the</span>
+<span class="sd">                magic bases.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">basis_sampling</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">basis_sampling</span><span class="si">}</span><span class="s2">&#39; is not an implemented sampling method. &quot;</span>
@@ -169,14 +190,17 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Shots count as configured by the given ``quantum_instance``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantum_instance</span><span class="o">.</span><span class="n">run_config</span><span class="o">.</span><span class="n">shots</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">basis_sampling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Basis sampling method (either ``&quot;uniform&quot;`` or ``&quot;weighted&quot;``).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basis_sampling</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">quantum_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuantumInstance</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Provides the ``Backend`` and the ``shots`` (samples) count.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantum_instance</span>
 
     <span class="nd">@quantum_instance</span><span class="o">.</span><span class="n">setter</span>
@@ -205,10 +229,10 @@
             <span class="n">q</span><span class="p">,</span> <span class="n">op</span> <span class="o">=</span> <span class="n">var2op</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
             <span class="c1"># get the index in [0,1,2] corresponding</span>
             <span class="c1"># to each possible Pauli.</span>
-            <span class="n">op_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">XYZ</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)]</span>
+            <span class="n">op_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_XYZ</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)]</span>
             <span class="c1"># get the bits associated to this magic basis&#39;</span>
             <span class="c1"># measurement outcomes</span>
-            <span class="n">bit_outcomes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ASSIGN</span><span class="p">[</span><span class="n">basis</span><span class="p">[</span><span class="n">q</span><span class="p">]]</span>
+            <span class="n">bit_outcomes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ASSIGN</span><span class="p">[</span><span class="n">basis</span><span class="p">[</span><span class="n">q</span><span class="p">]]</span>
             <span class="c1"># select which measurement outcome we observed</span>
             <span class="c1"># this gives up to 3 bits of information</span>
             <span class="n">magic_bits</span> <span class="o">=</span> <span class="n">bit_outcomes</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="n">q</span><span class="p">]]</span>
@@ -365,6 +389,8 @@
         <span class="k">return</span> <span class="n">bases</span><span class="p">,</span> <span class="n">basis_shots</span>
 
     <span class="k">def</span> <span class="nf">round</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">RoundingContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MagicRoundingResult</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Perform magic rounding&quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">_encoding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">_encoding</span><span class="o">.</span><span class="n">max_vars_per_qubit</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Currently, MagicRounding only supports 3-QRACs, &quot;</span>
@@ -392,6 +418,10 @@
                     <span class="s2">&quot;to be available, but they are not.&quot;</span>
                 <span class="p">)</span>
             <span class="n">bases</span><span class="p">,</span> <span class="n">basis_shots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_bases_weighted</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">q2vars</span><span class="p">,</span> <span class="n">trace_values</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;No such basis sampling method: &quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">basis_sampling</span><span class="si">}</span><span class="s1">&quot;.&#39;</span>
+            <span class="p">)</span>
 
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">shots</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">basis_shots</span><span class="p">)</span>
         <span class="c1"># For each of the Magic Bases sampled above, measure</span>

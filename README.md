@@ -112,7 +112,7 @@ If you would like to use a statevector simulation for Magic Rounding, we advise 
 We encourage your feedback! You can share your thoughts with us by:
 - [Opening an issue](https://github.com/qiskit-community/prototype-qrao/issues) in the repository
 - [Starting a conversation on GitHub Discussions](https://github.com/qiskit-community/prototype-qrao/discussions)
-- Filling out our survey (coming soon!)
+- [Filling out our survey](https://airtable.com/shrWnomSunVJTz6PV)
 
 
 ----------------------------------------------------------------------------------------------------

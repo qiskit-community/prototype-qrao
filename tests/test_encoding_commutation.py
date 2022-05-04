@@ -25,23 +25,14 @@ from qrao.encoding import QuantumRandomAccessEncoding, EncodingCommutationVerifi
 from qrao.utils import get_random_maxcut_qp
 
 
-def check_encoding_problem_commutation(encoding: QuantumRandomAccessEncoding):
-    violations = {}
-    non_violations = {}
-    for str_dvars, obj_val, encoded_obj_val in EncodingCommutationVerifier(encoding):
-        if np.isclose(obj_val, encoded_obj_val):
-            non_violations.update({str_dvars: (obj_val, encoded_obj_val)})
-        else:
-            violations.update({str_dvars: (obj_val, encoded_obj_val)})
-    return violations, non_violations
-
-
 def check_problem_commutation(problem: QuadraticProgram, max_vars_per_qubit: int):
     encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=max_vars_per_qubit)
     encoding.encode(problem)
-    violations, non_violations = check_encoding_problem_commutation(encoding)
-    assert len(violations) + len(non_violations) == 2**encoding.num_vars
-    assert len(violations) == 0
+    verifier = EncodingCommutationVerifier(encoding)
+    assert len(verifier) == 2**encoding.num_vars
+    assert all(
+        np.isclose(obj_val, encoded_obj_val) for _, obj_val, encoded_obj_val in verifier
+    )
 
 
 @pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])

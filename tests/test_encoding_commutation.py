@@ -17,49 +17,18 @@ import pytest
 import numpy as np
 
 from docplex.mp.model import Model
-from qiskit.opflow import StateFn
 
 from qiskit_optimization.translators import from_docplex_mp
 from qiskit_optimization.problems.quadratic_program import QuadraticProgram
 
-from qrao import QuantumRandomAccessEncoding
+from qrao.encoding import QuantumRandomAccessEncoding, EncodingCommutationVerifier
 from qrao.utils import get_random_maxcut_qp
-
-# Corresponds to the "check encoding problem commutation" how-to notebook
 
 
 def check_encoding_problem_commutation(encoding: QuantumRandomAccessEncoding):
-    if not encoding.num_vars:
-        raise ValueError("Empty encoding passed to check_encoding_problem_commutation")
-
-    problem = encoding.problem
-    encoded_problem = encoding.qubit_op  # H
-
-    # Offset accounts for the value of the encoded Hamiltonian's
-    # identity coefficient. This term need not be evaluated directly as
-    # Tr[I•rho] is always 1.
-    offset = encoding.offset
-
     violations = {}
     non_violations = {}
-    for i in range(2**encoding.num_vars):
-        str_dvars = ("{0:0" + str(encoding.num_vars) + "b}").format(i)
-        dvars = [int(b) for b in str_dvars]
-        encoded_bitstr = encoding.state_prep(dvars)
-
-        # Evaluate Un-encoded Problem
-        # ========================
-        # `sense` accounts for sign flips depending on whether
-        # we are minimizing or maximizing the objective function
-        sense = problem.objective.sense.value
-        obj_val = problem.objective.evaluate(dvars) * sense
-
-        # Evaluate Encoded Problem
-        # ========================
-        encoded_obj_val = (
-            np.real((~StateFn(encoded_problem) @ encoded_bitstr).eval()) + offset
-        )
-
+    for str_dvars, obj_val, encoded_obj_val in EncodingCommutationVerifier(encoding):
         if np.isclose(obj_val, encoded_obj_val):
             non_violations.update({str_dvars: (obj_val, encoded_obj_val)})
         else:

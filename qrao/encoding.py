@@ -45,6 +45,7 @@ from qiskit.opflow import (
     CircuitOp,
     Zero,
     One,
+    StateFn,
     CircuitStateFn,
 )
 
@@ -551,3 +552,47 @@ class QuantumRandomAccessEncoding:
 
     def state_prep(self, dvars: Union[Dict[int, int], List[int]]):
         return qrac_state_prep_multiqubit(dvars, self.q2vars, self.max_vars_per_qubit)
+
+
+class EncodingCommutationVerifier:
+    """Class for verifying that the relaxation commutes with the objective function
+
+    See also the "check encoding problem commutation" how-to notebook.
+    """
+
+    def __init__(self, encoding: QuantumRandomAccessEncoding):
+        self._encoding = encoding
+
+    def __len__(self) -> int:
+        return 2**self._encoding.num_vars
+
+    def __getitem__(self, i: int) -> Tuple[str, float, float]:
+        if i not in range(len(self)):
+            raise IndexError(f"Index out of range: {i}")
+
+        encoding = self._encoding
+        str_dvars = ("{0:0" + str(encoding.num_vars) + "b}").format(i)
+        dvars = [int(b) for b in str_dvars]
+        encoded_bitstr = encoding.state_prep(dvars)
+
+        # Offset accounts for the value of the encoded Hamiltonian's
+        # identity coefficient. This term need not be evaluated directly as
+        # Tr[I•rho] is always 1.
+        offset = encoding.offset
+
+        # Evaluate Un-encoded Problem
+        # ========================
+        # `sense` accounts for sign flips depending on whether
+        # we are minimizing or maximizing the objective function
+        problem = encoding.problem
+        sense = problem.objective.sense.value
+        obj_val = problem.objective.evaluate(dvars) * sense
+
+        # Evaluate Encoded Problem
+        # ========================
+        encoded_problem = encoding.qubit_op  # H
+        encoded_obj_val = (
+            np.real((~StateFn(encoded_problem) @ encoded_bitstr).eval()) + offset
+        )
+
+        return (str_dvars, obj_val, encoded_obj_val)

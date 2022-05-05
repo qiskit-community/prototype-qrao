@@ -24,6 +24,7 @@ from docplex.mp.model import Model
 
 from qrao.encoding import (
     QuantumRandomAccessEncoding,
+    EncodingCommutationVerifier,
     qrac_state_prep_multiqubit,
     qrac_state_prep_1q,
     z_to_31p_qrac_basis_circuit,
@@ -244,3 +245,19 @@ def test_undefined_basis_rotations():
 def test_unassigned_qubit():
     with pytest.raises(ValueError):
         qrac_state_prep_multiqubit({}, [[]], 3)
+
+
+def test_encoding_verifier_indexerror():
+    model = Model("docplex model")
+    x = model.binary_var("x")
+    y = model.binary_var("y")
+    model.minimize(x + 2 * y)
+    problem = from_docplex_mp(model)
+
+    encoding = QuantumRandomAccessEncoding(3)
+    encoding.encode(problem)
+
+    verifier = EncodingCommutationVerifier(encoding)
+    assert len(verifier) == 4
+    with pytest.raises(IndexError):
+        verifier[4]

@@ -27,6 +27,7 @@
 
    .. autosummary::
    
+      EncodingCommutationVerifier
       QuantumRandomAccessEncoding
    
    

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>qrao.encoding &#8212; Quantum Random Access Optimization 0.1.dev1+gde03782 documentation</title>
+    <title>qrao.encoding &#8212; Quantum Random Access Optimization 0.1.dev1+g5eb5b0f documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
@@ -84,6 +84,7 @@
     <span class="n">CircuitOp</span><span class="p">,</span>
     <span class="n">Zero</span><span class="p">,</span>
     <span class="n">One</span><span class="p">,</span>
+    <span class="n">StateFn</span><span class="p">,</span>
     <span class="n">CircuitStateFn</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -590,6 +591,54 @@
 
     <span class="k">def</span> <span class="nf">state_prep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dvars</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]):</span>
         <span class="k">return</span> <span class="n">qrac_state_prep_multiqubit</span><span class="p">(</span><span class="n">dvars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q2vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_vars_per_qubit</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">EncodingCommutationVerifier</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Class for verifying that the relaxation commutes with the objective function</span>
+
+<span class="sd">    See also the &quot;check encoding problem commutation&quot; how-to notebook.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="n">QuantumRandomAccessEncoding</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span> <span class="o">=</span> <span class="n">encoding</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="o">.</span><span class="n">num_vars</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Index out of range: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span>
+        <span class="n">str_dvars</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;{0:0&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">encoding</span><span class="o">.</span><span class="n">num_vars</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;b}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">dvars</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">str_dvars</span><span class="p">]</span>
+        <span class="n">encoded_bitstr</span> <span class="o">=</span> <span class="n">encoding</span><span class="o">.</span><span class="n">state_prep</span><span class="p">(</span><span class="n">dvars</span><span class="p">)</span>
+
+        <span class="c1"># Offset accounts for the value of the encoded Hamiltonian&#39;s</span>
+        <span class="c1"># identity coefficient. This term need not be evaluated directly as</span>
+        <span class="c1"># Tr[I•rho] is always 1.</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">encoding</span><span class="o">.</span><span class="n">offset</span>
+
+        <span class="c1"># Evaluate Un-encoded Problem</span>
+        <span class="c1"># ========================</span>
+        <span class="c1"># `sense` accounts for sign flips depending on whether</span>
+        <span class="c1"># we are minimizing or maximizing the objective function</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">encoding</span><span class="o">.</span><span class="n">problem</span>
+        <span class="n">sense</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">sense</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">obj_val</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">dvars</span><span class="p">)</span> <span class="o">*</span> <span class="n">sense</span>
+
+        <span class="c1"># Evaluate Encoded Problem</span>
+        <span class="c1"># ========================</span>
+        <span class="n">encoded_problem</span> <span class="o">=</span> <span class="n">encoding</span><span class="o">.</span><span class="n">qubit_op</span>  <span class="c1"># H</span>
+        <span class="n">encoded_obj_val</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">((</span><span class="o">~</span><span class="n">StateFn</span><span class="p">(</span><span class="n">encoded_problem</span><span class="p">)</span> <span class="o">@</span> <span class="n">encoded_bitstr</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">())</span> <span class="o">+</span> <span class="n">offset</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">str_dvars</span><span class="p">,</span> <span class="n">obj_val</span><span class="p">,</span> <span class="n">encoded_obj_val</span><span class="p">)</span>
 </pre></div>
 
           </div>

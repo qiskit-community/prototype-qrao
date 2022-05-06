@@ -112,8 +112,8 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
     def __init__(
         self,
         min_eigen_solver: MinimumEigensolver,
-        encoding: QuantumRandomAccessEncoding,
         rounding_scheme: Optional[RoundingScheme] = None,
+        encoding: Optional[QuantumRandomAccessEncoding] = None,
     ):
         """
         Args:
@@ -150,44 +150,93 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         self._min_eigen_solver = min_eigen_solver
 
     @property
-    def encoding(self) -> QuantumRandomAccessEncoding:
+    def encoding(self) -> Optional[QuantumRandomAccessEncoding]:
         """The encoding."""
         return self._encoding
 
     @encoding.setter
-    def encoding(self, encoding: QuantumRandomAccessEncoding) -> None:
+    def encoding(self, encoding: Optional[QuantumRandomAccessEncoding]) -> None:
         """Set the encoding"""
-        if encoding.num_qubits == 0:
-            raise ValueError(
-                "The passed encoder has no variables associated with it; you probably "
-                "need to call `encode()` to encode it with a `QuadraticProgram`."
-            )
-        # Instead of copying, we "freeze" the encoding to ensure it is not
-        # modified going forward.
-        encoding.freeze()
+        if encoding is not None:
+            if encoding.num_qubits == 0:
+                raise ValueError(
+                    "The passed encoder has no variables associated with it; "
+                    "you probabably need to call `encode()` to encode it "
+                    "with a `QuadraticProgram` first."
+                )
+            # Instead of copying, we "freeze" the encoding to ensure it is not
+            # modified going forward.
+            encoding.freeze()
         self._encoding = encoding
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
-        if problem != self.encoding.problem:
+        if self.encoding.problem is not None:
+            if problem != self.encoding.problem:
+                return (
+                    "The problem passed does not match the problem used "
+                    "to construct the QuantumRandomAccessEncoding."
+                )
+            # We already checked its validity when calling encode()
+            return ""
+
+        if problem.get_num_vars() > problem.get_num_binary_vars():
             return (
-                "The problem passed does not match the problem used "
-                "to construct the QuantumRandomAccessEncoding."
+                "The type of all variables must be binary. "
+                "You can use `QuadraticProgramToQubo` converter "
+                "to convert integer variables to binary variables. "
+                "If the problem contains continuous variables, `qrao` "
+                "cannot handle it."
             )
+
+        if problem.linear_constraints or problem.quadratic_constraints:
+            return (
+                "There must be no constraint in the problem. "
+                "You can use `QuadraticProgramToQubo` converter to convert "
+                "constraints to penalty terms of the objective function."
+            )
+
         return ""
 
-    def solve_relaxed(self) -> Tuple[MinimumEigensolverResult, RoundingContext]:
+    def __get_problem(self, problem: Optional[QuadraticProgram]) -> QuadraticProgram:
+        if problem is None:
+            if self.encoding is None:
+                raise ValueError(
+                    "A problem needs to be specified if no encoding was provided "
+                    "in the constructor."
+                )
+            return self.encoding.problem
+
+        if self.encoding is not None and problem is not self.encoding.problem:
+            raise ValueError(
+                "The problem given must exactly match the problem "
+                "used to generate the encoded operator. Alternatively, "
+                "the argument to `solve` can be left blank."
+            )
+
+        return problem
+
+    def solve_relaxed(
+        self, problem: Optional[QuadraticProgram] = None
+    ) -> Tuple[MinimumEigensolverResult, RoundingContext]:
+        problem = self.__get_problem(problem)
+        if self.encoding is None:
+            encoding = QuantumRandomAccessEncoding()
+            encoding.encode(problem)
+        else:
+            encoding = self.encoding
+
         # Get the ordered list of operators that correspond to each decision
         # variable.  This line assumes the variables are numbered consecutively
         # starting with 0.  Note that under this assumption, the following
-        # range is equivalent to `sorted(self.encoding.var2op.keys())`.  See
+        # range is equivalent to `sorted(encoding.var2op.keys())`.  See
         # encoding.py for more commentary on this assumption, which always
         # holds when starting from a `QuadraticProgram`.
-        variable_ops = [self.encoding.term2op(i) for i in range(self.encoding.num_vars)]
+        variable_ops = [encoding.term2op(i) for i in range(encoding.num_vars)]
 
         # solve relaxed problem
         start_time_relaxed = time.time()
         relaxed_results = self.min_eigen_solver.compute_minimum_eigenvalue(
-            self.encoding.qubit_op, aux_operators=variable_ops
+            encoding.qubit_op, aux_operators=variable_ops
         )
         stop_time_relaxed = time.time()
         relaxed_results.time_taken = stop_time_relaxed - start_time_relaxed
@@ -210,13 +259,13 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             )
         elif isinstance(self.min_eigen_solver, NumPyMinimumEigensolver):
             statevector = relaxed_results.eigenstate
-            circuit = QuantumCircuit(self.encoding.num_qubits)
+            circuit = QuantumCircuit(encoding.num_qubits)
             circuit.initialize(statevector.primitive)
         else:
             circuit = None
 
         rounding_context = RoundingContext(
-            encoding=self.encoding,
+            encoding=encoding,
             trace_values=trace_values,
             circuit=circuit,
         )
@@ -224,19 +273,11 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         return relaxed_results, rounding_context
 
     def solve(self, problem: Optional[QuadraticProgram] = None) -> OptimizationResult:
-        if problem is None:
-            problem = self.encoding.problem
-        else:
-            if problem != self.encoding.problem:
-                raise ValueError(
-                    "The problem given must exactly match the problem "
-                    "used to generate the encoded operator. Alternatively, "
-                    "the argument to `solve` can be left blank."
-                )
+        problem = self.__get_problem(problem)
 
         # Solve relaxed problem
         # ============================
-        (relaxed_results, rounding_context) = self.solve_relaxed()
+        (relaxed_results, rounding_context) = self.solve_relaxed(problem)
 
         # Round relaxed solution
         # ============================

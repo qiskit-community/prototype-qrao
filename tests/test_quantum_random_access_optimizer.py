@@ -162,6 +162,35 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         self.assertIsInstance(results.relaxed_results, MinimumEigensolverResult)
         self.assertIsInstance(results.rounding_results, RoundingResult)
 
+    def test_solve_on_late_specified_problem(self):
+        """Test that solve(problem) can work if no encoding provided in constructor"""
+        relaxed_qi = QuantumInstance(
+            backend=Aer.get_backend("aer_simulator_statevector"), shots=100
+        )
+        vqe = VQE(
+            ansatz=self.ansatz,
+            optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
+            quantum_instance=relaxed_qi,
+        )
+        qrao = QuantumRandomAccessOptimizer(vqe)
+        results = qrao.solve(self.problem)
+        self.assertIsInstance(results.relaxed_results, MinimumEigensolverResult)
+        self.assertIsInstance(results.rounding_results, RoundingResult)
+
+    def test_solve_without_anything(self):
+        """Test that solve() errors without a problem nor with an encoding"""
+        relaxed_qi = QuantumInstance(
+            backend=Aer.get_backend("aer_simulator_statevector"), shots=100
+        )
+        vqe = VQE(
+            ansatz=self.ansatz,
+            optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
+            quantum_instance=relaxed_qi,
+        )
+        qrao = QuantumRandomAccessOptimizer(vqe)
+        with self.assertRaises(ValueError):
+            qrao.solve()
+
     def test_empty_encoding(self):
         """Test that an exception is raised if the encoding has no qubits"""
         relaxed_qi = QuantumInstance(

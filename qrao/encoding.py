@@ -48,6 +48,7 @@ from qiskit.opflow import (
     StateFn,
     CircuitStateFn,
 )
+from qiskit.utils.deprecation import deprecate_function
 
 from qiskit_optimization.problems.quadratic_program import QuadraticProgram
 
@@ -274,7 +275,6 @@ class QuantumRandomAccessEncoding:
             raise ValueError("max_vars_per_qubit must be 1, 2, or 3") from None
 
         self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
-        self._offset: Optional[float] = None
         self._problem: Optional[QuadraticProgram] = None
         self._var2op: Dict[int, Tuple[int, PrimitiveOp]] = {}
         self._q2vars: List[List[int]] = []
@@ -321,15 +321,20 @@ class QuantumRandomAccessEncoding:
         return self._qubit_op
 
     @property
+    @deprecate_function(
+        "The `offset` has been incorporated directly into `qubit_op`, "
+        "obviating the need for its own property.  It will always be 0.0 "
+        "from now on and will be removed in the future."
+    )
     def offset(self) -> float:
-        if self._offset is None:
+        if self._qubit_op is None:
             raise AttributeError(
                 "No objective function has been provided from which a "
                 "qubit Hamiltonian can be constructed. Please use the "
                 "encode method if you wish to manually compile "
                 "this field."
             )
-        return self._offset
+        return 0.0
 
     @property
     def problem(self) -> QuadraticProgram:
@@ -421,7 +426,6 @@ class QuantumRandomAccessEncoding:
 
         After being called, the object will have the following attributes:
             qubit_op: The qubit operator encoding the input QuadraticProgram.
-            offset: The constant value in the encoded Hamiltonian.
             problem: The ``problem`` used for encoding.
 
         Inputs:
@@ -517,8 +521,8 @@ class QuantumRandomAccessEncoding:
                 w = quad[i, j]
                 if w != 0:
                     self._add_term(w, i, j)
+        self._add_term(offset)
 
-        self._offset = offset
         self._problem = problem
 
         # This is technically optional and can wait until the optimizer is
@@ -579,11 +583,6 @@ class EncodingCommutationVerifier:
         dvars = [int(b) for b in str_dvars]
         encoded_bitstr = encoding.state_prep(dvars)
 
-        # Offset accounts for the value of the encoded Hamiltonian's
-        # identity coefficient. This term need not be evaluated directly as
-        # Tr[I•rho] is always 1.
-        offset = encoding.offset
-
         # Evaluate Un-encoded Problem
         # ========================
         # `sense` accounts for sign flips depending on whether
@@ -595,8 +594,6 @@ class EncodingCommutationVerifier:
         # Evaluate Encoded Problem
         # ========================
         encoded_problem = encoding.qubit_op  # H
-        encoded_obj_val = (
-            np.real((~StateFn(encoded_problem) @ encoded_bitstr).eval()) + offset
-        )
+        encoded_obj_val = np.real((~StateFn(encoded_problem) @ encoded_bitstr).eval())
 
         return (str_dvars, obj_val, encoded_obj_val)

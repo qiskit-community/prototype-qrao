@@ -137,11 +137,8 @@ def test_qrac_encoding_from_model():
 
     encoding = QuantumRandomAccessEncoding(3)
     with pytest.raises(AttributeError):
-        encoding.offset
-    with pytest.raises(AttributeError):
         encoding.problem
     encoding.encode(problem)
-    encoding.offset
     encoding.problem
     assert encoding.num_qubits == 1
     assert encoding.compression_ratio == 2
@@ -216,7 +213,6 @@ def test_sense():
     min_encoding.encode(get_problem(maximize=False))
 
     assert max_encoding.qubit_op == min_encoding.qubit_op
-    assert max_encoding.offset == min_encoding.offset
 
 
 def test_qrac_state_prep_1q():

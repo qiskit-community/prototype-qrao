@@ -12,7 +12,7 @@
 
 """Quantum Random Access Optimizer."""
 
-from typing import Union, List, Tuple, Optional
+from typing import Union, List, Tuple, Optional, Callable
 import time
 
 import numpy as np
@@ -114,6 +114,10 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         min_eigen_solver: MinimumEigensolver,
         rounding_scheme: Optional[RoundingScheme] = None,
         encoding: Optional[QuantumRandomAccessEncoding] = None,
+        *,
+        encoding_factory: Callable[
+            [], QuantumRandomAccessEncoding
+        ] = QuantumRandomAccessEncoding,
     ):
         """
         Args:
@@ -130,6 +134,8 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         """
         self.min_eigen_solver = min_eigen_solver
         self.encoding = encoding
+        if encoding is None:
+            self.encoding_factory = encoding_factory
         if rounding_scheme is None:
             rounding_scheme = SemideterministicRounding()
         self.rounding_scheme = rounding_scheme
@@ -220,7 +226,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
     ) -> Tuple[MinimumEigensolverResult, RoundingContext]:
         problem = self.__get_problem(problem)
         if self.encoding is None:
-            encoding = QuantumRandomAccessEncoding()
+            encoding = self.encoding_factory()
             encoding.encode(problem)
         else:
             encoding = self.encoding

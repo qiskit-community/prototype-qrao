@@ -320,7 +320,7 @@ class QuantumRandomAccessEncoding:
             )
         return self._qubit_op
 
-    @property
+    @property  # type: ignore
     @deprecate_function(
         "The `offset` has been incorporated directly into `qubit_op`, "
         "obviating the need for its own property.  It will always be 0.0 "

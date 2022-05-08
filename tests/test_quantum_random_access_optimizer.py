@@ -14,8 +14,6 @@
 
 from unittest import TestCase
 
-import numpy as np
-
 from qiskit import Aer
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigen_solvers import (

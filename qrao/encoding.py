@@ -326,7 +326,7 @@ class QuantumRandomAccessEncoding:
         "obviating the need for its own property.  It will always be 0.0 "
         "from now on and will be removed in the future."
     )
-    def offset(self) -> float:
+    def offset(self) -> float:  # pragma: no cover (deprecated)
         if self._qubit_op is None:
             raise AttributeError(
                 "No objective function has been provided from which a "

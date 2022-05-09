@@ -190,6 +190,9 @@ def qrac_state_prep_multiqubit(
     q2vars: List[List[int]],
     max_vars_per_qubit: int,
 ) -> CircuitStateFn:
+    """
+    Prepare a multiqubit QRAC state.
+    """
     remaining_dvars = set(dvars if isinstance(dvars, dict) else range(len(dvars)))
     ordered_bits = []
     for qi_vars in q2vars:

@@ -108,7 +108,7 @@ def test_magic_rounding_on_hardware_backend(my_encoding, my_ansatz):
     print(f"Encoding requires {my_encoding.num_qubits} qubits")
     backend = least_busy(
         provider.backends(
-            filters=lambda x: x.configuration().n_qubits >= my_encoding.num_qubits,
+            filters=lambda x: x.num_qubits >= my_encoding.num_qubits,
             simulator=False,
         )
     )

@@ -25,6 +25,7 @@
   - [Tutorials](docs/tutorials/)
   - [How-Tos](docs/how_tos/)
   - [Background](docs/background/)
+  - [API Reference](https://qiskit-community.github.io/prototype-qrao/apidocs/) (work in progress)
 * [Important Usage Notes](#important-usage-notes)
 * [How to Give Feedback](#how-to-give-feedback)
 * [Contribution Guidelines](#contribution-guidelines)
@@ -84,6 +85,7 @@ Documentation is stored in the [`docs/`](docs/) directory.  It is organized acco
 - [Tutorials](docs/tutorials/): longer examples of end-to-end usage
 - [How-to guides](docs/how_tos/): targeted answers to common questions
 - [Background material](docs/background/): in-depth exploration of theoretical concepts
+- [API Reference](https://qiskit-community.github.io/prototype-qrao/apidocs/): documentation of each individual class and function (work in progress)
 
 ----------------------------------------------------------------------------------------------------
 

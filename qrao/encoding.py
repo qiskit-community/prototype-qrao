@@ -553,7 +553,7 @@ class QuantumRandomAccessEncoding:
         if self._frozen:
             raise RuntimeError("Cannot modify an encoding that has been frozen")
 
-    def state_prep(self, dvars: Union[Dict[int, int], List[int]]):
+    def state_prep(self, dvars: Union[Dict[int, int], List[int]]) -> CircuitStateFn:
         return qrac_state_prep_multiqubit(dvars, self.q2vars, self.max_vars_per_qubit)
 
 

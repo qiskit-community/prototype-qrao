@@ -107,7 +107,11 @@ def test_magic_rounding_on_hardware_backend(my_encoding, my_ansatz):
         pytest.skip("No hardware backend available")
     print(f"Encoding requires {my_encoding.num_qubits} qubits")
     backend = least_busy(
-        provider.backends(min_num_qubits=my_encoding.num_qubits, simulator=False)
+        provider.backends(
+            min_num_qubits=my_encoding.num_qubits,
+            simulator=False,
+            operational=True,
+        )
     )
     print(f"Using backend: {backend}")
     relaxed_qi = QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=100)

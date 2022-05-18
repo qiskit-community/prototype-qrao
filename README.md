@@ -45,7 +45,7 @@ This project evolved out of research at IBM Quantum on [Approximate Solutions of
 
 ***Problem Statement***
 
-Given a quadratic unconstrained binary optimization (QUBO) problem represented by a relaxation to a local quantum Hamiltonian, find an approximate solution by rounding the energy associated with a candidate ground state. This Hamiltonian is constructed using quantum random access codes for memory compression, which allows each qubit to encode more than one binary variable.
+Given a [quadratic unconstrained binary optimization](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) (QUBO) problem represented by a relaxation to a local quantum Hamiltonian, find an approximate solution by rounding the energy associated with a candidate ground state. This Hamiltonian is constructed using quantum random access codes for memory compression, which allows each qubit to encode more than one binary variable.
 
 ***QRAO Flowchart***
 

@@ -39,7 +39,7 @@ def test_qrac_unsupported_encoding():
         QuantumRandomAccessEncoding(4)
 
 
-def test_31p_qrac_encoding():
+def test_31p_qrac_encoding():  # pylint: disable=too-many-statements
     encoding = QuantumRandomAccessEncoding(3)
     assert encoding.num_qubits == 0
     assert not encoding.frozen

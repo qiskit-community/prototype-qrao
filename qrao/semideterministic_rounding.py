@@ -24,6 +24,9 @@ from .rounding_common import (
 )
 
 
+# pylint: disable=too-few-public-methods
+
+
 class SemideterministicRoundingResult(RoundingResult):
     """Result of semideterministic rounding"""
 

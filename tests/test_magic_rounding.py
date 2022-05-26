@@ -19,6 +19,7 @@ import numpy as np
 from docplex.mp.model import Model
 
 from qiskit import Aer, QuantumCircuit
+from qiskit.providers.aer import noise
 from qiskit.utils import QuantumInstance
 from qiskit.opflow import (
     StateFn,
@@ -338,6 +339,26 @@ def test_magic_rounding_statevector_simulator():
     ctx = RoundingContext(circuit=circ, trace_values=[1, 1, 1], var2op=var2op)
     res = magic.round(ctx)
     assert sum(s.probability for s in res.samples) == pytest.approx(1)
+
+
+def test_noisy_quantuminstance():
+    """Smoke test using a QuantumInstance with noise"""
+    noise_model = noise.NoiseModel()
+    # 1-qubit gates
+    noise_model.add_all_qubit_quantum_error(
+        noise.depolarizing_error(0.001, 1), ["rz", "sx", "x"]
+    )
+    # 2-qubit gate
+    noise_model.add_all_qubit_quantum_error(noise.depolarizing_error(0.01, 2), ["cx"])
+
+    backend = Aer.get_backend("aer_simulator")
+    qi = QuantumInstance(backend=backend, noise_model=noise_model, shots=100)
+    magic = MagicRounding(quantum_instance=qi)
+
+    ops = [X, Y, Z]
+    var2op = {i: (i // 3, ops[i % 3]) for i in range(3)}
+    circuit = qrac_state_prep_1q(0, 1, 0).to_circuit()
+    magic.round(RoundingContext(trace_values=[1, 1, 1], var2op=var2op, circuit=circuit))
 
 
 if __name__ == "__main__":

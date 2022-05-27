@@ -218,7 +218,7 @@ class TestMagicRounding(unittest.TestCase):
         ]
         self.assertTrue(np.all(np.array(ref) == np.array(solns)))
 
-    def test_sample_bases_weighted(self):
+    def test_sample_bases_weighted(self):  # pylint: disable=too-many-locals
         """
         There are a few settings of the trace values which
         cause the magic basis sampling probabilities to be deterministic.

@@ -340,8 +340,7 @@ class MagicRounding(RoundingScheme):
             mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
             pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
             # fmt: on
-            probs = [ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp]
-            basis_probs.append(probs)
+            basis_probs.append([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
 
         bases = [
             [self.rng.choice(4, size=1, p=probs)[0] for probs in basis_probs]

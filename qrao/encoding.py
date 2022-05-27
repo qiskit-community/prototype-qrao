@@ -403,6 +403,41 @@ class QuantumRandomAccessEncoding:
         return reduce(lambda x, y: x ^ y, ops)
 
     @staticmethod
+    def _generate_ising_terms(
+        problem: QuadraticProgram,
+    ) -> Tuple[float, np.ndarray, np.ndarray]:
+        num_vars = problem.get_num_vars()
+
+        # set a sign corresponding to a maximized or minimized problem:
+        # 1 is for minimized problem, -1 is for maximized problem.
+        sense = problem.objective.sense.value
+
+        # convert a constant part of the objective function into Hamiltonian.
+        offset = problem.objective.constant * sense
+
+        # convert linear parts of the objective function into Hamiltonian.
+        linear = np.zeros(num_vars)
+        for idx, coef in problem.objective.linear.to_dict().items():
+            weight = coef * sense / 2
+            linear[idx] -= weight
+            offset += weight
+
+        # convert quadratic parts of the objective function into Hamiltonian.
+        quad = np.zeros((num_vars, num_vars))
+        for (i, j), coef in problem.objective.quadratic.to_dict().items():
+            weight = coef * sense / 4
+            if i == j:
+                linear[i] -= 2 * weight
+                offset += 2 * weight
+            else:
+                quad[i, j] += weight
+                linear[i] -= weight
+                linear[j] -= weight
+                offset += weight
+
+        return offset, linear, quad
+
+    @staticmethod
     def _find_variable_partition(quad: np.ndarray) -> Dict[int, List[int]]:
         num_nodes = quad.shape[0]
         assert quad.shape == (num_nodes, num_nodes)
@@ -459,35 +494,10 @@ class QuantumRandomAccessEncoding:
                 "constraints to penalty terms of the objective function."
             )
 
-        # initialize Hamiltonian.
         num_vars = problem.get_num_vars()
 
-        # set a sign corresponding to a maximized or minimized problem:
-        # 1 is for minimized problem, -1 is for maximized problem.
-        sense = problem.objective.sense.value
-
-        # convert a constant part of the objective function into Hamiltonian.
-        offset = problem.objective.constant * sense
-
-        # convert linear parts of the objective function into Hamiltonian.
-        linear = np.zeros(num_vars)
-        for idx, coef in problem.objective.linear.to_dict().items():
-            weight = coef * sense / 2
-            linear[idx] -= weight
-            offset += weight
-
-        # convert quadratic parts of the objective function into Hamiltonian.
-        quad = np.zeros((num_vars, num_vars))
-        for (i, j), coef in problem.objective.quadratic.to_dict().items():
-            weight = coef * sense / 4
-            if i == j:
-                linear[i] -= 2 * weight
-                offset += 2 * weight
-            else:
-                quad[i, j] += weight
-                linear[i] -= weight
-                linear[j] -= weight
-                offset += weight
+        # Generate the decision variable terms in terms of Ising variables (+1 or -1)
+        offset, linear, quad = self._generate_ising_terms(problem)
 
         # Find variable partition (a graph coloring is sufficient)
         variable_partition = self._find_variable_partition(quad)

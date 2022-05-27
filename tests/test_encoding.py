@@ -79,14 +79,14 @@ def test_31p_qrac_encoding():  # pylint: disable=too-many-statements
         encoding.state_prep(m)
 
     with pytest.raises(AttributeError):
-        encoding.qubit_op
+        encoding.qubit_op  # pylint: disable=pointless-statement
 
     encoding._add_term(1.5, 7)
     encoding._add_term(0, 7)
     with pytest.raises(KeyError):
         encoding._add_term(0, 8)
 
-    encoding.qubit_op
+    encoding.qubit_op  # pylint: disable=pointless-statement
 
     with pytest.raises(RuntimeError):
         # Collision of variables (same qubit)
@@ -137,12 +137,12 @@ def test_qrac_encoding_from_model():
 
     encoding = QuantumRandomAccessEncoding(3)
     with pytest.raises(AttributeError):
-        encoding.offset
+        encoding.offset  # pylint: disable=pointless-statement
     with pytest.raises(AttributeError):
-        encoding.problem
+        encoding.problem  # pylint: disable=pointless-statement
     encoding.encode(problem)
-    encoding.offset
-    encoding.problem
+    encoding.offset  # pylint: disable=pointless-statement
+    encoding.problem  # pylint: disable=pointless-statement
     assert encoding.num_qubits == 1
     assert encoding.compression_ratio == 2
 
@@ -260,4 +260,4 @@ def test_encoding_verifier_indexerror():
     verifier = EncodingCommutationVerifier(encoding)
     assert len(verifier) == 4
     with pytest.raises(IndexError):
-        verifier[4]
+        verifier[4]  # pylint: disable=pointless-statement

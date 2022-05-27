@@ -147,7 +147,7 @@ class TestMagicRounding(unittest.TestCase):
             for b1 in range(4):
                 for outcome in range(4):
                     bases = [[b0, b1]]
-                    basis_counts = [{"{:02b}".format(outcome): 1}]
+                    basis_counts = [{f"{outcome:02b}": 1}]
                     dv_counts = compute_dv_counts(basis_counts, bases, var2op)
                     solns.append(list(dv_counts.keys())[0])
         ref = [

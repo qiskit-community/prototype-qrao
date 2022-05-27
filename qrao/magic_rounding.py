@@ -402,9 +402,9 @@ class MagicRounding(RoundingScheme):
             for soln, count in soln_counts.items()
         ]
 
-        assert np.isclose(sum(soln_counts.values()), self.shots), "{} != {}".format(
+        assert np.isclose(
             sum(soln_counts.values()), self.shots
-        )
+        ), f"{sum(soln_counts.values())} != {self.shots}"
         assert len(bases) == len(basis_shots) == len(basis_counts)
         stop_time = time.time()
 

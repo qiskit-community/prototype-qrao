@@ -186,7 +186,7 @@ class MagicRounding(RoundingScheme):
         output_bits = []
         # iterate in order over decision variables
         # (assumes variables are numbered consecutively beginning with 0)
-        for var in range(len(var2op)):
+        for var in range(len(var2op)):  # pylint: disable=consider-using-enumerate
             q, op = var2op[var]
             # get the index in [0,1,2] corresponding
             # to each possible Pauli.

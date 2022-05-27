@@ -186,7 +186,7 @@ class MagicRounding(RoundingScheme):
         output_bits = []
         # iterate in order over decision variables
         # (assumes variables are numbered consecutively beginning with 0)
-        for var in range(len(var2op)):
+        for var in range(len(var2op)):  # pylint: disable=consider-using-enumerate
             q, op = var2op[var]
             # get the index in [0,1,2] corresponding
             # to each possible Pauli.
@@ -340,8 +340,7 @@ class MagicRounding(RoundingScheme):
             mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
             pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
             # fmt: on
-            probs = [ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp]
-            basis_probs.append(probs)
+            basis_probs.append([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
 
         bases = [
             [self.rng.choice(4, size=1, p=probs)[0] for probs in basis_probs]
@@ -403,9 +402,9 @@ class MagicRounding(RoundingScheme):
             for soln, count in soln_counts.items()
         ]
 
-        assert np.isclose(sum(soln_counts.values()), self.shots), "{} != {}".format(
+        assert np.isclose(
             sum(soln_counts.values()), self.shots
-        )
+        ), f"{sum(soln_counts.values())} != {self.shots}"
         assert len(bases) == len(basis_shots) == len(basis_counts)
         stop_time = time.time()
 

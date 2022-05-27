@@ -118,7 +118,7 @@ This means that each decision variable is assigned a *unique* single-qubit Pauli
 
 Observe that under the $(3,1,p)$-QRAC, any term in our objective function of the form $(1 - x_i x_j)$ will map to a Hamiltonian term of the form $(1-3\cdot P_{[i]} P_{[j]})$. If both $P_{[i]}$ and $P_{[j]}$ are defined on different qubits, then $P_{[i]}\cdot P_{[j]} = P_{[i]}\otimes P_{[j]}$ and this term of our Hamiltonian will behave as we expect.
 
-If however, $P_{[i]}$ and $P_{[j]}$ are defined on the same qubit, the two Paulis will compose directly. Recall that the Pauli matrices form a group and are self-inverse, thus we can deduce that the product of two distinct Paulis will yeild another element of the group and it will not be the identity. 
+If however, $P_{[i]}$ and $P_{[j]}$ are defined on the same qubit, the two Paulis will compose directly. Recall that the Pauli matrices form a group and are self-inverse, thus we can deduce that the product of two distinct Paulis will yield another element of the group and it will not be the identity. 
 
 Practically, this means that our commutation relationship will break and $\text{cut}(m) \not= \text{Tr}\big(H^{(1)}F^{(3)}(m)\big)$
 

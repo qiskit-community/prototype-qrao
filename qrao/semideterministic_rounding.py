@@ -12,7 +12,7 @@
 
 """Semideterministic rounding"""
 
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -24,11 +24,11 @@ from .rounding_common import (
 )
 
 
+# pylint: disable=too-few-public-methods
+
+
 class SemideterministicRoundingResult(RoundingResult):
     """Result of semideterministic rounding"""
-
-    def __init__(self, samples: List[RoundingSolutionSample], *, time_taken=None):
-        super().__init__(samples, time_taken=time_taken)
 
 
 class SemideterministicRounding(RoundingScheme):

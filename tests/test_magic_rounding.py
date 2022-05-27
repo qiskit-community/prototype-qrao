@@ -12,6 +12,8 @@
 
 """Tests for MagicRounding."""
 
+import itertools
+
 import unittest
 import pytest
 
@@ -90,39 +92,31 @@ class TestMagicRounding(unittest.TestCase):
         )
         # subtest for gate based and sv based etc
         with self.subTest("Gate Based Magic Uniform Rounding"):
-            for m0 in range(2):
-                for m1 in range(2):
-                    for m2 in range(2):
-                        qrac_gate_circ = qrac_state_prep_1q(m0, m1, m2).to_circuit()
-                        magic_basis = 2 * (m1 ^ m2) + (m0 ^ m2)
-                        tv = self.deterministic_trace_vals[magic_basis]
-                        rounding_context = RoundingContext(
-                            trace_values=tv, circuit=qrac_gate_circ, var2op=var2op
-                        )
-                        rounding_res = magic.round(rounding_context)
-                        self.assertEqual(
-                            rounding_res.samples[0].x.tolist(), [m0, m1, m2]
-                        )
-                        self.assertEqual(rounding_res.samples[0].probability, 1)
+            for m in itertools.product((0, 1), repeat=3):
+                qrac_gate_circ = qrac_state_prep_1q(*m).to_circuit()
+                magic_basis = 2 * (m[1] ^ m[2]) + (m[0] ^ m[2])
+                tv = self.deterministic_trace_vals[magic_basis]
+                rounding_context = RoundingContext(
+                    trace_values=tv, circuit=qrac_gate_circ, var2op=var2op
+                )
+                rounding_res = magic.round(rounding_context)
+                self.assertEqual(rounding_res.samples[0].x.tolist(), list(m))
+                self.assertEqual(rounding_res.samples[0].probability, 1)
 
         with self.subTest("SV Based Magic Uniform Rounding"):
-            for m0 in range(2):
-                for m1 in range(2):
-                    for m2 in range(2):
-                        qrac_gate_circ = qrac_state_prep_1q(m0, m1, m2).to_circuit()
-                        sv = StateFn(qrac_gate_circ).eval().primitive
-                        qrac_sv_circ = QuantumCircuit(1)
-                        qrac_sv_circ.initialize(sv)
-                        magic_basis = 2 * (m1 ^ m2) + (m0 ^ m2)
-                        tv = self.deterministic_trace_vals[magic_basis]
-                        rounding_context = RoundingContext(
-                            trace_values=tv, circuit=qrac_sv_circ, var2op=var2op
-                        )
-                        rounding_res = magic.round(rounding_context)
-                        self.assertEqual(
-                            rounding_res.samples[0].x.tolist(), [m0, m1, m2]
-                        )
-                        self.assertEqual(rounding_res.samples[0].probability, 1)
+            for m in itertools.product((0, 1), repeat=3):
+                qrac_gate_circ = qrac_state_prep_1q(*m).to_circuit()
+                sv = StateFn(qrac_gate_circ).eval().primitive
+                qrac_sv_circ = QuantumCircuit(1)
+                qrac_sv_circ.initialize(sv)
+                magic_basis = 2 * (m[1] ^ m[2]) + (m[0] ^ m[2])
+                tv = self.deterministic_trace_vals[magic_basis]
+                rounding_context = RoundingContext(
+                    trace_values=tv, circuit=qrac_sv_circ, var2op=var2op
+                )
+                rounding_res = magic.round(rounding_context)
+                self.assertEqual(rounding_res.samples[0].x.tolist(), list(m))
+                self.assertEqual(rounding_res.samples[0].probability, 1)
 
     def test_evaluate_magic_bases(self):
         qi = QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=1000)
@@ -130,16 +124,14 @@ class TestMagicRounding(unittest.TestCase):
             quantum_instance=qi,
             basis_sampling="weighted",
         )
-        for m0 in range(2):
-            for m1 in range(2):
-                for m2 in range(2):
-                    qrac_state = qrac_state_prep_1q(m0, m1, m2).to_circuit()
-                    bases = [[2 * (m1 ^ m2) + (m0 ^ m2)]]
-                    basis_counts = magic._evaluate_magic_bases(
-                        qrac_state, bases=bases, basis_shots=[10]
-                    )
-                    self.assertEqual(len(basis_counts), 1)
-                    self.assertEqual(int(list(basis_counts[0].keys())[0]), m0 ^ m1 ^ m2)
+        for m in itertools.product((0, 1), repeat=3):
+            qrac_state = qrac_state_prep_1q(*m).to_circuit()
+            bases = [[2 * (m[1] ^ m[2]) + (m[0] ^ m[2])]]
+            basis_counts = magic._evaluate_magic_bases(
+                qrac_state, bases=bases, basis_shots=[10]
+            )
+            self.assertEqual(len(basis_counts), 1)
+            self.assertEqual(int(list(basis_counts[0].keys())[0]), m[0] ^ m[1] ^ m[2])
 
     def test_dv_counts(self):
         """
@@ -155,7 +147,7 @@ class TestMagicRounding(unittest.TestCase):
             for b1 in range(4):
                 for outcome in range(4):
                     bases = [[b0, b1]]
-                    basis_counts = [{"{:02b}".format(outcome): 1}]
+                    basis_counts = [{f"{outcome:02b}": 1}]
                     dv_counts = compute_dv_counts(basis_counts, bases, var2op)
                     solns.append(list(dv_counts.keys())[0])
         ref = [
@@ -226,7 +218,7 @@ class TestMagicRounding(unittest.TestCase):
         ]
         self.assertTrue(np.all(np.array(ref) == np.array(solns)))
 
-    def test_sample_bases_weighted(self):
+    def test_sample_bases_weighted(self):  # pylint: disable=too-many-locals
         """
         There are a few settings of the trace values which
         cause the magic basis sampling probabilities to be deterministic.

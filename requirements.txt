@@ -10,5 +10,5 @@ matplotlib>=3.0.0
 # a library, but it's required for one of the included Jupyter
 # notebooks, so we include it in this prototype's requirements for
 # convenience.
-cplex>=22.1.0.0
+cplex>=12.10
 tqdm[notebook]>=4.64

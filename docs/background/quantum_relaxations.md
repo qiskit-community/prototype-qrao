@@ -168,7 +168,7 @@ First, notice that for the $(1,1,1)$-QRAC, there is only one basis to choose and
 
 For the $(2,1,p)$ and $(3,1,p)$ QRACs, if we apply the magic state rounding scheme to an $n$-qubit QRAC state $F(m)$, we will have a $2^{-n}$ and $4^{-n}$ probability of picking the correct basis on each qubit to perfectly extract the solution $m$. Put differently, if we are given an unknown state $F(m)$ the probability that $\mathcal{M}^{\otimes n}(F(m))\mapsto F(m)$ decreases exponentially with the number of qubits measured – it is far more likely to be mapped to some other $F(m^*)$. Similarly, when we perform magic rounding on an arbitrary state $\rho_\text{relax}$, we have similarly low odds of randomly choosing the optimal magic basis for all $n$-qubits. Fortunately magic state rounding does offer a lower bound on the approximation ratio under certain conditions.
 
-Let $F(m^*)$ be the highest energy state in the image of F, and let $\rho^*$ be the maximal eigenstate of H. 
+Let $F(m^*)$ be the highest energy state in the image of F, and let $\rho^\*$ be the maximal eigenstate of H.
 
 $$\forall \rho_\text{relax}\quad \text{st}\quad \text{Tr}\left(F(m^*)\cdot H\right) \leq \text{Tr}\left(\rho_\text{relax}\cdot H\right)\leq \text{Tr}\left(\rho^*\cdot H\right)$$
 

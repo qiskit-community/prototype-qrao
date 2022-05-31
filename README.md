@@ -25,6 +25,7 @@
   - [Tutorials](docs/tutorials/)
   - [How-Tos](docs/how_tos/)
   - [Background](docs/background/)
+  - [API Reference](https://qiskit-community.github.io/prototype-qrao/apidocs/) (work in progress)
 * [Important Usage Notes](#important-usage-notes)
 * [How to Give Feedback](#how-to-give-feedback)
 * [Contribution Guidelines](#contribution-guidelines)
@@ -39,13 +40,13 @@
 
 The Quantum Random Access Optimization (QRAO) module is designed to enable users to leverage a new quantum method for combinatorial optimization problems. This approach incorporates Quantum Random Access Codes (QRACs) as a tool to encode multiple classical binary variables into a single qubit, thereby saving quantum resources and enabling exploration of larger problem instances on a quantum computer. The encodings produce a local quantum Hamiltonian whose ground state can be approximated with standard algorithms such as [VQE](https://qiskit.org/documentation/tutorials/algorithms/04_vqe_advanced.html) and [QAOA](https://qiskit.org/documentation/tutorials/algorithms/05_qaoa.html), and then rounded to yield approximation solutions of the original problem.
 
-The figure at the top of this page illustrates a simple example of encoding a degree-3 graph with 10 vertices into just 4 qubits, instead of 10. The graph is colored (with a largest-degree-first greedy algorithm) such that adjacent vertices are of a different color. Then, vertices of a given color are encoded using a (3,1,p) QRAC so that a maximum of 3 vertices are associated with a single qubit. Check out the [background documentation](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/background/quantum_relaxations.ipynb) to learn more about the coloring algorithm, QRACs, and building associated local quantum Hamiltonians.
+The figure at the top of this page illustrates a simple example of encoding a degree-3 graph with 10 vertices into just 4 qubits, instead of 10. The graph is colored (with a largest-degree-first greedy algorithm) such that adjacent vertices are of a different color. Then, vertices of a given color are encoded using a (3,1,p) QRAC so that a maximum of 3 vertices are associated with a single qubit. Check out the [background documentation](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/background/quantum_relaxations.md) to learn more about the coloring algorithm, QRACs, and building associated local quantum Hamiltonians.
 
 This project evolved out of research at IBM Quantum on [Approximate Solutions of Combinatorial Problems via Quantum Relaxations](https://arxiv.org/abs/2111.03167).
 
 ***Problem Statement***
 
-Given a quadratic unconstrained binary optimization (QUBO) problem represented by a relaxation to a local quantum Hamiltonian, find an approximate solution by rounding the energy associated with a candidate ground state. This Hamiltonian is constructed using quantum random access codes for memory compression, which allows each qubit to encode more than one binary variable.
+Given a [quadratic unconstrained binary optimization](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) (QUBO) problem represented by a relaxation to a local quantum Hamiltonian, find an approximate solution by rounding the energy associated with a candidate ground state. This Hamiltonian is constructed using quantum random access codes for memory compression, which allows each qubit to encode more than one binary variable.
 
 ***QRAO Flowchart***
 
@@ -84,6 +85,7 @@ Documentation is stored in the [`docs/`](docs/) directory.  It is organized acco
 - [Tutorials](docs/tutorials/): longer examples of end-to-end usage
 - [How-to guides](docs/how_tos/): targeted answers to common questions
 - [Background material](docs/background/): in-depth exploration of theoretical concepts
+- [API Reference](https://qiskit-community.github.io/prototype-qrao/apidocs/): documentation of each individual class and function (work in progress)
 
 ----------------------------------------------------------------------------------------------------
 

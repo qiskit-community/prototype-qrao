@@ -31,6 +31,8 @@ from qrao import (
     MagicRounding,
 )
 
+# pylint: disable=redefined-outer-name
+
 # TODO:
 # - update these tests to include solution checking once behavior can be made
 # - deterministic.

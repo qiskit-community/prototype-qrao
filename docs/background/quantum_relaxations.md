@@ -2,14 +2,14 @@
 
 ## Relaxations
 
-Consider a binary optimization problem defined on binary variables $m_i \in \{-1,1\}$. The choice of using $\pm 1$ variables instead of $0/1$ variables is not important, but will be notationally convenient for us when we begin to re-cast this problem in terms of quantum observables. We will be primarily interested in [quadratic unconstrained binary optimization (QUBO)](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) problems, although the ideas in this document can readily extend to problems with more than quadratic terms, and problems with non-binary or constrained variables can often be recast as a QUBO (though this conversion will incur some overhead). 
+Consider a binary optimization problem defined on binary variables $m_i \in \\{-1,1\\}$. The choice of using $\pm 1$ variables instead of $0/1$ variables is not important, but will be notationally convenient for us when we begin to re-cast this problem in terms of quantum observables. We will be primarily interested in [quadratic unconstrained binary optimization (QUBO)](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) problems, although the ideas in this document can readily extend to problems with more than quadratic terms, and problems with non-binary or constrained variables can often be recast as a QUBO (though this conversion will incur some overhead). 
 
 Within mathematical optimization, [relaxation](https://en.wikipedia.org/wiki/Relaxation_%28approximation%29) is the strategy of taking some hard problem and mapping it onto a similar version of that problem which is (usually) easier to solve. The core idea here is that for useful relaxations, the solution to the relaxed problem can give information about the original problem and allow one to heuristically find better solutions. An example of relaxation could be something as simple as taking a discrete optimization problem and allowing a solver to optimize the problem using continuous variables. Once a solution is obtained for the relaxed problem, the solver must find a strategy for extracting a discrete solution from the relaxed solution of continuous values. This process of mapping the relaxed solution back onto original problem's set of admissable solutions is often referred to as __*rounding*__. 
 
 For a concrete example of relaxation and rounding, see the [Goemans-Williamson Algorithm for MaxCut](https://en.wikipedia.org/wiki/Semidefinite_programming#Example_3_(Goemans%E2%80%93Williamson_max_cut_approximation_algorithm)).
 
 
-Without loss of generality, the rest of this document will consider a [MaxCut](https://en.wikipedia.org/wiki/Maximum_cut) objective function defined on a graph $G = (V,E)$. Our goal is to find a partitioning of our vertices $V$ into two sets ($+1$ and $-1$), such that we maximize the number of edges which connect both sets. More concretely, each $v_i \in V$ will be assigned a binary variable $m_i \in \{0,1\}$, and we will define the *cut* of a variable assignment as:
+Without loss of generality, the rest of this document will consider a [MaxCut](https://en.wikipedia.org/wiki/Maximum_cut) objective function defined on a graph $G = (V,E)$. Our goal is to find a partitioning of our vertices $V$ into two sets ($+1$ and $-1$), such that we maximize the number of edges which connect both sets. More concretely, each $v_i \in V$ will be assigned a binary variable $m_i \in \\{0,1\\}$, and we will define the *cut* of a variable assignment as:
 
 $$\text{cut}(m) = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-m_i m_j) $$
 
@@ -19,7 +19,7 @@ $$\text{cut}(m) = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-m_i m_j) $$
 Our goal is to define a relaxation of our MaxCut objective function. We will do this by mapping our objective function's binary variables into the space of single qubit Pauli observables and by embedding the set of feasible inputs to cut($m$) onto the space of single-qubit quantum product states. Let us denote this embedding $F$ as:
 
 
-$$ F: \{-1,1\}^{M} \mapsto \mathcal{D}(\mathbb{C}^{2^n}), $$
+$$ F: \\{-1,1\\}^{M} \mapsto \mathcal{D}(\mathbb{C}^{2^n}), $$
 
 $$ \text{cut}(m) \mapsto \text{Tr}\big(H\cdot F(m)\big), $$
 
@@ -27,9 +27,9 @@ where $M = |V|$, and $H$ is a quantum Hamiltonian which encodes our objective fu
 
 For this to be [a valid relaxation](https://en.wikipedia.org/wiki/Relaxation_%28approximation%29#Properties) of our problem, it must be the case that:
 
-$$\text{cut}(m) \geq \text{Tr}\big(H\cdot F(m)\big)\qquad \forall m \in \{-1,1\}^M.$$
+$$\text{cut}(m) \geq \text{Tr}\big(H\cdot F(m)\big)\qquad \forall m \in \\{-1,1\\}^M.$$
 
-In order to guarantee this is true, we will enforce the stronger condition that our relaxation ***commutes*** with our objective function. In other words, cut($m$) is equal to the relaxed objective function for all  $m \in \{-1,1\}^M$, rather than simply upper bounding it. This detail will become crucially important further down when we explicitly define our quantum relaxation. 
+In order to guarantee this is true, we will enforce the stronger condition that our relaxation ***commutes*** with our objective function. In other words, cut($m$) is equal to the relaxed objective function for all  $m \in \\{-1,1\\}^M$, rather than simply upper bounding it. This detail will become crucially important further down when we explicitly define our quantum relaxation. 
 
 ## A Simple Quantum Relaxation
 
@@ -38,15 +38,15 @@ Before explicating the full quantum relaxation scheme based on single-qubit Quan
 Consider the embedding 
 
 
-$$F^{(1)}: m \in \{-1,1\}^M \mapsto \{|0\rangle,|1\rangle\}^{\otimes M},$$
+$$F^{(1)}: m \in \\{-1,1\\}^M \mapsto \\{|0\rangle,|1\rangle\\}^{\otimes M},$$
 
 $$\text{cut}(m) \mapsto \text{Tr}\big(H^{(1)}F^{(1)}(m)\big),\quad  H^{(1)} = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-Z_i Z_j),$$ 
 
 where $Z_i$ indicates the single qubit Pauli-Z observable defined on the $i$'th qubit and Identity terms on all other qubits. It is worth convincing yourself that this transformation is a valid relaxation of our problem. In particular:
 
-$$\text{cut}(m) = \text{Tr}\big(H^{(1)}F^{(1)}(m)\big) \quad \forall m \in \{-1,1\}^M$$
+$$\text{cut}(m) = \text{Tr}\big(H^{(1)}F^{(1)}(m)\big) \quad \forall m \in \\{-1,1\\}^M$$
 
-This sort of embedding is currently used by many near-term quantum optimization algorithms, including many [QAOA and VQE based approaches](https://github.com/Qiskit/qiskit-optimization/blob/main/docs/tutorials/03_minimum_eigen_optimizer.ipynb). Observe how although the relaxed version of our problem can exactly reproduce the objective function cut($m$) for inputs of the form $\{|0\rangle,|1\rangle\}^{\otimes M}$, we are also free to evaluate $H^{(1)}$ using a continuous superposition of such states. This stands in analogy to how one might classically relax an optimization problem such that they optimize the objective function using continuous values. 
+This sort of embedding is currently used by many near-term quantum optimization algorithms, including many [QAOA and VQE based approaches](https://github.com/Qiskit/qiskit-optimization/blob/main/docs/tutorials/03_minimum_eigen_optimizer.ipynb). Observe how although the relaxed version of our problem can exactly reproduce the objective function cut($m$) for inputs of the form $\\{|0\rangle,|1\rangle\\}^{\otimes M}$, we are also free to evaluate $H^{(1)}$ using a continuous superposition of such states. This stands in analogy to how one might classically relax an optimization problem such that they optimize the objective function using continuous values. 
 
 Crucially, a relaxation is only useful if there is some practical way to ***round*** relaxed solutions back onto the original problem's set of admissable solutions. For this particular quantum relaxation, the rounding scheme is simply given by measuring each qubit of our relaxed solution in the $Z$-basis. Measurement will project any quantum state onto the set of computational basis states, and consequently, onto the image of $F^{(1)}$.
 
@@ -66,19 +66,19 @@ $$\rho = \frac{1}{2}\left(I + aX + bY + cZ \right),\quad |a|^2 + |b|^2 + |c|^2 =
  
 $$\begin{array}{l|ll} \text{QRAC} & &\text{Embedding into } \rho = \vert \psi(m)\rangle\langle\psi(m)\vert \\
 \hline
-(1,1,1)\qquad &F^{(1)}(m): \{-1,1\} &\mapsto\ \vert\psi^{(1)}_m\rangle \langle\psi^{(1)}_m\vert = \frac{1}{2}\Big(I + {m_0}Z \Big) \\
-(2,1,p)\qquad &F^{(2)}(m): \{-1,1\}^2 &\mapsto\ \vert\psi^{(2)}_m\rangle \langle\psi^{(2)}_m\vert = \frac{1}{2}\left(I + \frac{1}{\sqrt{2}}\big({m_0}X+ {m_1}Z \big)\right)  \\
-(3,1,p)\qquad &F^{(3)}(m): \{-1,1\}^3 &\mapsto\ \vert\psi^{(3)}_m\rangle \langle\psi^{(3)}_m\vert = \frac{1}{2}\left(I + \frac{1}{\sqrt{3}}\big({m_0}X+ {m_1}Y + {m_2}Z\big)\right) \\ \end{array}$$
+(1,1,1)\qquad &F^{(1)}(m): \\{-1,1\\} &\mapsto\ \vert\psi^{(1)}_m\rangle \langle\psi^{(1)}_m\vert = \frac{1}{2}\Big(I + {m_0}Z \Big) \\
+(2,1,p)\qquad &F^{(2)}(m): \\{-1,1\\}^2 &\mapsto\ \vert\psi^{(2)}_m\rangle \langle\psi^{(2)}_m\vert = \frac{1}{2}\left(I + \frac{1}{\sqrt{2}}\big({m_0}X+ {m_1}Z \big)\right)  \\
+(3,1,p)\qquad &F^{(3)}(m): \\{-1,1\\}^3 &\mapsto\ \vert\psi^{(3)}_m\rangle \langle\psi^{(3)}_m\vert = \frac{1}{2}\left(I + \frac{1}{\sqrt{3}}\big({m_0}X+ {m_1}Y + {m_2}Z\big)\right) \\ \end{array}$$
 
 &nbsp;
 $$\text{Table 1: Explicit QRAC States}$$
 
 
-Note that for when using a $(k,1,p)$-QRAC with bistrings $m \in \{-1,1\}^M, M > k$, these embeddings scale naturally via composition by tensor product. 
-$$m \in \{-1,1\}^6,\quad F^{(3)}(m) = F^{(3)}(m_0,m_1,m_2)\otimes F^{(3)}(m_3,m_4,m_5)$$
+Note that for when using a $(k,1,p)$-QRAC with bistrings $m \in \\{-1,1\\}^M, M > k$, these embeddings scale naturally via composition by tensor product. 
+$$m \in \\{-1,1\\}^6,\quad F^{(3)}(m) = F^{(3)}(m_0,m_1,m_2)\otimes F^{(3)}(m_3,m_4,m_5)$$
 
 Similarly, when $k \nmid M$, we can simply pad our input bitstring with the appropriate number of $+1$ values. 
-$$m \in \{-1,1\}^4,\quad F^{(3)}(m) = F^{(3)}(m_0,m_1,m_2)\otimes F^{(3)}(m_3,+1,+1)$$
+$$m \in \\{-1,1\\}^4,\quad F^{(3)}(m) = F^{(3)}(m_0,m_1,m_2)\otimes F^{(3)}(m_3,+1,+1)$$
 
 ### Recovering Encoded Bits
 
@@ -103,8 +103,8 @@ Using the tools we have outlined above, we can explicitly write out the Hamilton
 $$\begin{array}{l|ll} \text{QRAC}  & \text{Problem Hamiltonian}\\
 \hline
 (1,1,1)\qquad &H^{(1)} = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-Z_i Z_j)\\
-(2,1,p)\qquad &H^{(2)} = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-2\cdot P_{[i]} P_{[j]}),\quad P_{[i]} \in \{X,Z\}\\
-(3,1,p)\qquad &H^{(3)} = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-3\cdot P_{[i]} P_{[j]}),\quad P_{[i]} \in \{X,Y,Z\}\\ \end{array}$$
+(2,1,p)\qquad &H^{(2)} = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-2\cdot P_{[i]} P_{[j]}),\quad P_{[i]} \in \\{X,Z\\}\\
+(3,1,p)\qquad &H^{(3)} = \sum_{ij; e_{ij} \in E} \frac{1}{2}(1-3\cdot P_{[i]} P_{[j]}),\quad P_{[i]} \in \\{X,Y,Z\\}\\ \end{array}$$
 
 &nbsp;
 $$ \text{Table 3: Relaxed MaxCut Hamiltonians after QRAC Embedding} $$
@@ -132,16 +132,16 @@ In [1] this is accomplished by finding a coloring of the graph G such that no ve
 ## Quantum Rounding Schemes
 Because the final solution we obtain for the relaxed problem $\rho_\text{relax}$ is unlikely to be in the image of $F$, we need a strategy for mapping $\rho_\text{relax}$ to the image of $F$ so that we may extract a solution to our original problem. 
 
-In [1] there are two strategies proposed for rounding $\rho_\text{relax}$ back to $m \in \{-1,1\}^M$. 
+In [1] there are two strategies proposed for rounding $\rho_\text{relax}$ back to $m \in \\{-1,1\\}^M$. 
 
 ### Semideterministic Rounding
 A natural choice for extracting a solution is to use the results of Table $2$ and simply estimate $\text{Tr}(P_{[i]}\rho_\text{relax})$ for all $i$ in order to assign a value to each variable $m_i$. The procedure described in Table $2$ was intended for use on states in the image of $F$, however, we are now applying it to arbitrary input states. The practical consequence is we will no longer measure a value close to {$\pm 1$}, {$\pm \sqrt{2}$}, or {$\pm \sqrt{3}$}, as we would expect for the $(1,1,1)$, $(2,1,p)$, and $(3,1,p)$ QRACs, respectively. 
 
 We handle this by returning the sign of the expectation value, leading to the following rounding scheme. 
 
-$$m_i = \left\{\begin{array}{rl}
+$$m_i = \left\\{\begin{array}{rl}
       +1 & \text{Tr}(P_{[i]}\rho_\text{relax}) > 0 \\
-      X \sim\{-1,1\} & \text{Tr}(P_{[i]}\rho_\text{relax}) = 0 \\
+      X \sim\\{-1,1\\} & \text{Tr}(P_{[i]}\rho_\text{relax}) = 0 \\
       -1 & \text{Tr}(P_{[i]}\rho_\text{relax}) < 0  
       \end{array}\right.$$
 
@@ -159,7 +159,7 @@ Notice that Semideterministic rounding will faithfully recover $m$ from $F(m)$ w
 
 <br>
 
-Rather than seeking to independently distinguish each $m_i$, magic state rounding randomly selects a measurement basis which will perfectly distinguish a particular pair of orthogonal QRAC states $\{ F(m), F(\bar m)\}$, where $\bar m$ indicates that every bit of $m$ has been flipped. 
+Rather than seeking to independently distinguish each $m_i$, magic state rounding randomly selects a measurement basis which will perfectly distinguish a particular pair of orthogonal QRAC states $\\{ F(m), F(\bar m)\\}$, where $\bar m$ indicates that every bit of $m$ has been flipped. 
 
 Let  $\mathcal{M}$ be the randomized rounding procedure which takes as input a state $\rho_\text{relax}$ and samples a bitstring $m$ by measuring in a randomly selected magic-basis.
 $$\mathcal{M}^{\otimes n}(\rho_\text{relax}) \rightarrow F(m)$$

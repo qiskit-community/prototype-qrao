@@ -135,7 +135,15 @@ class TestMagicRounding(unittest.TestCase):
                     qrac_state = qrac_state_prep_1q(m0, m1, m2).to_circuit()
                     bases = [[2 * (m1 ^ m2) + (m0 ^ m2)]]
                     basis_counts = magic._evaluate_magic_bases(
-                        qrac_state, bases=bases, basis_shots=[10]
+                        qrac_state,
+                        bases=bases,
+                        basis_shots=[10],
+                        q2vars=q2vars_from_var2op(
+                            {
+                                i: (i // 3, [X, Y, Z][i % 3])
+                                for i in range(len(bases[0]))
+                            }
+                        ),
                     )
                     self.assertEqual(len(basis_counts), 1)
                     self.assertEqual(int(list(basis_counts[0].keys())[0]), m0 ^ m1 ^ m2)
@@ -155,7 +163,9 @@ class TestMagicRounding(unittest.TestCase):
                 for outcome in range(4):
                     bases = [[b0, b1]]
                     basis_counts = [{"{:02b}".format(outcome): 1}]
-                    dv_counts = compute_dv_counts(basis_counts, bases, var2op)
+                    dv_counts = compute_dv_counts(
+                        basis_counts, bases, var2op, q2vars_from_var2op(var2op)
+                    )
                     solns.append(list(dv_counts.keys())[0])
         ref = [
             "000000",

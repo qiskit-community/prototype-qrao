@@ -362,13 +362,6 @@ class MagicRounding(RoundingScheme):
     def round(self, ctx: RoundingContext) -> MagicRoundingResult:
         """Perform magic rounding"""
 
-        # if ctx._encoding is not None and ctx._encoding.max_vars_per_qubit != 3:
-        #     raise ValueError(
-        #         "Currently, MagicRounding only supports 3-QRACs, "
-        #         "but the passed encoding is a "
-        #         f"{ctx._encoding.max_vars_per_qubit}-QRAC."
-        #     )
-
         start_time = time.time()
         trace_values = ctx.trace_values
         circuit = ctx.circuit

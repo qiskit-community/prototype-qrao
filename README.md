@@ -31,6 +31,7 @@
 * [Contribution Guidelines](#contribution-guidelines)
 * [Acknowledgements](#acknowledgements)
 * [About Prototypes](#about-prototypes)
+* [Deprecation Policy](#deprecation-policy)
 * [References](#references)
 * [License](#license)
 
@@ -146,6 +147,13 @@ The initial codebase was written by Takashi Imamichi, Toshinari Itoko, and Bryce
 Prototypes is a collaboration between developers and researchers that will give users access to prototypes from cutting-edge research in areas like quantum simulation and machine learning. These software packages are built on top of, and may eventually be integrated into the Qiskit SDK. They are a contribution as part of the Qiskit community.
 
 Check out our [blog post](https://medium.com/qiskit/try-out-the-latest-advances-in-quantum-computing-with-ibm-quantum-prototypes-11f51124cb61) for more information!
+
+
+----------------------------------------------------------------------------------------------------
+
+### Deprecation Policy
+
+Prototypes are meant to evolve rapidly and, as such, do not follow [Qiskit's deprecation policy](https://qiskit.org/documentation/contributing_to_qiskit.html#deprecation-policy).  We may occasionally make breaking changes in order to improve the user experience.  When possible, we will keep old interfaces and mark them as deprecated, as long as they can co-exist with the new ones.  Each substantial improvement, breaking change, or deprecation will be documented in [`NEWS.md`](NEWS.md).
 
 
 ----------------------------------------------------------------------------------------------------

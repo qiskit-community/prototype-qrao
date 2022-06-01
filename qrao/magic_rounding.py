@@ -99,17 +99,25 @@ class MagicRounding(RoundingScheme):
 
     """
 
-    # This information should really come from the encoding.
-    # Right now it's basically hard coded for one QRAC.
-    _ASSIGN = (
-        {"0": (0, 0, 0), "1": (1, 1, 1)},  # IMI
-        {"0": (0, 1, 1), "1": (1, 0, 0)},  # XMX
-        {"0": (1, 0, 1), "1": (0, 1, 0)},  # YMY
-        {"0": (1, 1, 0), "1": (0, 0, 1)},  # ZMZ
-    )
+    _QRAC_DECODING = {
+        3: (
+            {"0": [0, 0, 0], "1": [1, 1, 1]},
+            {"0": [0, 1, 1], "1": [1, 0, 0]},
+            {"0": [1, 0, 1], "1": [0, 1, 0]},
+            {"0": [1, 1, 0], "1": [0, 0, 1]},
+        ),
+        2: (
+            {"0": [0, 0], "1": [1, 1]},
+            {"0": [0, 1], "1": [1, 0]},
+        ),
+        1: ({"0": [0], "1": [1]},),
+    }
 
-    # Pauli op string to label index in ops (assumes 3-QRAC)
-    _XYZ = {"X": 0, "Y": 1, "Z": 2}
+    _OPERATOR_INDICES = {
+        3: {"X": 0, "Y": 1, "Z": 2},
+        2: {"X": 0, "Z": 1},
+        1: {"Z": 0},
+    }
 
     def __init__(
         self,
@@ -179,29 +187,23 @@ class MagicRounding(RoundingScheme):
 
     def _unpack_measurement_outcome(
         self,
-        bits: str,
+        measured_bits: str,
         basis: List[int],
         var2op: Dict[int, Tuple[int, PrimitiveOp]],
+        q2vars: List[List[int]],
     ) -> List[int]:
-        output_bits = []
-        # iterate in order over decision variables
-        # (assumes variables are numbered consecutively beginning with 0)
-        for var in range(len(var2op)):
-            q, op = var2op[var]
-            # get the index in [0,1,2] corresponding
-            # to each possible Pauli.
-            op_index = self._XYZ[str(op)]
-            # get the bits associated to this magic basis'
-            # measurement outcomes
-            bit_outcomes = self._ASSIGN[basis[q]]
-            # select which measurement outcome we observed
-            # this gives up to 3 bits of information
-            magic_bits = bit_outcomes[bits[q]]
-            # Assign our variable's value depending on
-            # which pauli our variable was associated to
-            variable_value = magic_bits[op_index]
-            output_bits.append(variable_value)
-        return output_bits
+        variable_values = {}
+        for qubit, variables in enumerate(q2vars):
+            decoded_variables = self._QRAC_DECODING[len(variables)][basis[qubit]][
+                measured_bits[qubit]
+            ]
+            for variable in variables:
+                _, operator = var2op[variable]
+                variable_values[variable] = decoded_variables[
+                    self._OPERATOR_INDICES[len(variables)][str(operator)]
+                ]
+
+        return [variable_values[variable] for variable in range(len(variable_values))]
 
     @staticmethod
     def _make_circuits(
@@ -226,15 +228,6 @@ class MagicRounding(RoundingScheme):
                 measured_circuit.measure_all()
             measured_circuits.append(measured_circuit)
         return measured_circuits
-
-        # for basis in bases:
-        #     qc = circ.compose(
-        #         z_to_31p_qrac_basis_circuit(basis).inverse(), inplace=False
-        #     )
-        #     if measure:
-        #         qc.measure_all()
-        #     circuits.append(qc)
-        # return circuits
 
     def _evaluate_magic_bases(self, circuit, bases, basis_shots, q2vars):
         """
@@ -299,7 +292,7 @@ class MagicRounding(RoundingScheme):
 
         return basis_counts
 
-    def _compute_dv_counts(self, basis_counts, bases, var2op):
+    def _compute_dv_counts(self, basis_counts, bases, var2op, q2vars):
         """
         Given a list of bases, basis_shots, and basis_counts, convert
         each observed bitstrings to its corresponding decision variable
@@ -312,7 +305,7 @@ class MagicRounding(RoundingScheme):
             for bitstr, count in counts.items():
 
                 # For each bit in the observed bitstring...
-                soln = self._unpack_measurement_outcome(bitstr, base, var2op)
+                soln = self._unpack_measurement_outcome(bitstr, base, var2op, q2vars)
                 soln = "".join([str(int(bit)) for bit in soln])
                 if soln in dv_counts:
                     dv_counts[soln] += count
@@ -411,7 +404,9 @@ class MagicRounding(RoundingScheme):
         )
         # keys will be configurations of decision variables
         # values will be total number of observations.
-        soln_counts = self._compute_dv_counts(basis_counts, bases, ctx.var2op)
+        soln_counts = self._compute_dv_counts(
+            basis_counts, bases, ctx.var2op, ctx.q2vars
+        )
 
         soln_samples = [
             RoundingSolutionSample(

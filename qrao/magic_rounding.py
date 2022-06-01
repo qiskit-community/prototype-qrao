@@ -24,7 +24,7 @@ from qiskit.providers import Backend
 from qiskit.opflow import PrimitiveOp
 from qiskit.utils import QuantumInstance
 
-from .encoding import z_to_31p_qrac_basis_circuit
+from .encoding import z_to_31p_qrac_basis_circuit, z_to_21p_qrac_basis_circuit
 from .rounding_common import (
     RoundingSolutionSample,
     RoundingScheme,
@@ -205,19 +205,38 @@ class MagicRounding(RoundingScheme):
 
     @staticmethod
     def _make_circuits(
-        circ: QuantumCircuit, bases: List[List[int]], measure: bool
+        circuit: QuantumCircuit, bases: List[List[int]], measure: bool, q2vars
     ) -> List[QuantumCircuit]:
-        circuits = []
+        measured_circuits = []
         for basis in bases:
-            qc = circ.compose(
-                z_to_31p_qrac_basis_circuit(basis).inverse(), inplace=False
-            )
+            measured_circuit = circuit.copy()
+            for (qubit, variables), operator in zip(enumerate(q2vars), basis):
+                assert len(variables) in (1, 2, 3)
+                if len(variables) == 3:
+                    measured_circuit.append(
+                        z_to_31p_qrac_basis_circuit([operator]).inverse(),
+                        qargs=[qubit],
+                    )
+                elif len(variables) == 2:
+                    measured_circuit.append(
+                        z_to_21p_qrac_basis_circuit([operator]).inverse(),
+                        qargs=[qubit],
+                    )
             if measure:
-                qc.measure_all()
-            circuits.append(qc)
-        return circuits
+                measured_circuit.measure_all()
+            measured_circuits.append(measured_circuit)
+        return measured_circuits
 
-    def _evaluate_magic_bases(self, circuit, bases, basis_shots):
+        # for basis in bases:
+        #     qc = circ.compose(
+        #         z_to_31p_qrac_basis_circuit(basis).inverse(), inplace=False
+        #     )
+        #     if measure:
+        #         qc.measure_all()
+        #     circuits.append(qc)
+        # return circuits
+
+    def _evaluate_magic_bases(self, circuit, bases, basis_shots, q2vars):
         """
         Given a circuit you wish to measure, a list of magic bases to measure,
         and a list of the shots to use for each magic basis configuration.
@@ -228,7 +247,7 @@ class MagicRounding(RoundingScheme):
         len(bases) == len(basis_shots) == len(basis_counts)
         """
         measure = not _is_original_statevector_simulator(self.quantum_instance.backend)
-        circuits = self._make_circuits(circuit, bases, measure)
+        circuits = self._make_circuits(circuit, bases, measure, q2vars)
 
         # Execute each of the rotated circuits and collect the results
 
@@ -303,9 +322,7 @@ class MagicRounding(RoundingScheme):
 
     def _sample_bases_uniform(self, q2vars):
         bases = [
-            self.rng.choice(
-                4, size=len(q2vars), p=[1 / 4, 1 / 4, 1 / 4, 1 / 4]
-            ).tolist()
+            [self.rng.choice(len(variables)) for variables in q2vars]
             for _ in range(self.shots)
         ]
         bases, basis_shots = np.unique(bases, axis=0, return_counts=True)
@@ -352,12 +369,12 @@ class MagicRounding(RoundingScheme):
     def round(self, ctx: RoundingContext) -> MagicRoundingResult:
         """Perform magic rounding"""
 
-        if ctx._encoding is not None and ctx._encoding.max_vars_per_qubit != 3:
-            raise ValueError(
-                "Currently, MagicRounding only supports 3-QRACs, "
-                "but the passed encoding is a "
-                f"{ctx._encoding.max_vars_per_qubit}-QRAC."
-            )
+        # if ctx._encoding is not None and ctx._encoding.max_vars_per_qubit != 3:
+        #     raise ValueError(
+        #         "Currently, MagicRounding only supports 3-QRACs, "
+        #         "but the passed encoding is a "
+        #         f"{ctx._encoding.max_vars_per_qubit}-QRAC."
+        #     )
 
         start_time = time.time()
         trace_values = ctx.trace_values
@@ -389,7 +406,9 @@ class MagicRounding(RoundingScheme):
         # the appropriate number of times (given by basis_shots)
         # and return the circuit results
 
-        basis_counts = self._evaluate_magic_bases(circuit, bases, basis_shots)
+        basis_counts = self._evaluate_magic_bases(
+            circuit, bases, basis_shots, ctx.q2vars
+        )
         # keys will be configurations of decision variables
         # values will be total number of observations.
         soln_counts = self._compute_dv_counts(basis_counts, bases, ctx.var2op)

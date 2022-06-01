@@ -79,19 +79,28 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
 
     @property
     def relaxed_results(self) -> MinimumEigensolverResult:
+        """Variationally obtained ground state of the relaxed Hamiltonian"""
         return self._relaxed_results
 
     @property
     def rounding_results(self) -> RoundingResult:
+        """Rounding results"""
         return self._rounding_results
 
     @property
     def trace_values(self):
+        """List of expectation values, one corresponding to each decision variable"""
         trace_values = [v[0] for v in self._relaxed_results.aux_operator_eigenvalues]
         return trace_values
 
     @property
     def relaxed_fval(self) -> float:
+        """Relaxed function value, in the conventions of the original ``QuadraticProgram``
+
+        Restoring convertions may be necessary, for instance, if the provided
+        ``QuadraticProgram`` represents a maximization problem, as it will be
+        converted to a minimization problem when phrased as a Hamiltonian.
+        """
         return self._sense * (
             self._relaxed_results_offset + self.relaxed_results.eigenvalue.real
         )
@@ -176,6 +185,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         return ""
 
     def solve_relaxed(self) -> Tuple[MinimumEigensolverResult, RoundingContext]:
+        """Solve the relaxed Hamiltonian given the ``encoding`` provided to the constructor."""
         # Get the ordered list of operators that correspond to each decision
         # variable.  This line assumes the variables are numbered consecutively
         # starting with 0.  Note that under this assumption, the following

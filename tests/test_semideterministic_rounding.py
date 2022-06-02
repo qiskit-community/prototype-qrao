@@ -23,6 +23,7 @@ from qrao.utils import get_random_maxcut_qp
 
 
 def test_semideterministic_rounding():
+    """Test that semideterministic rounding works as expected"""
     encoding = QuantumRandomAccessEncoding()
     encoding.encode(get_random_maxcut_qp(degree=3, num_nodes=6))
 

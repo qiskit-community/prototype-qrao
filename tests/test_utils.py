@@ -17,7 +17,8 @@ import pytest
 from qrao.utils import get_random_maxcut_qp
 
 
-def test_get_random_maxcut_qp():
+def test_get_random_maxcut_qp_weight():
+    """Test ``get_random_maxcut_qp()`` with each "edge case" (if statement branch) of ``weight``"""
     get_random_maxcut_qp(weight=1)
     get_random_maxcut_qp(weight=-1)
     get_random_maxcut_qp(weight=2)

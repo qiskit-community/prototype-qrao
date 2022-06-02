@@ -18,6 +18,7 @@ import pytest
 # https://docs.pytest.org/en/latest/example/simple.html#control-skipping-of-tests-according-to-command-line-option
 
 
+# pylint: disable=missing-function-docstring
 def pytest_addoption(parser):
     parser.addoption(
         "--run-backend-tests",

@@ -274,10 +274,9 @@ class QuantumRandomAccessEncoding:
     )
 
     def __init__(self, max_vars_per_qubit: int = 3):
-        try:
-            self._ops = self.OPERATORS[max_vars_per_qubit - 1]
-        except IndexError:
-            raise ValueError("max_vars_per_qubit must be 1, 2, or 3") from None
+        if max_vars_per_qubit not in (1, 2, 3):
+            raise ValueError("max_vars_per_qubit must be 1, 2, or 3")
+        self._ops = self.OPERATORS[max_vars_per_qubit - 1]
 
         self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
         self._offset: Optional[float] = None

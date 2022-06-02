@@ -38,6 +38,8 @@ def test_qrac_unsupported_encoding():
     """Test that exception is raised if ``max_vars_per_qubit`` is invalid"""
     with pytest.raises(ValueError):
         QuantumRandomAccessEncoding(4)
+    with pytest.raises(ValueError):
+        QuantumRandomAccessEncoding(0)
     with pytest.raises(TypeError):
         QuantumRandomAccessEncoding(1.0)
 

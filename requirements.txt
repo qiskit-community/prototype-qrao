@@ -3,7 +3,7 @@ importlib_metadata>=4.8.1
 qiskit-terra>=0.19.2
 qiskit-aer>=0.10.3
 qiskit-ibmq-provider>=0.18.3
-qiskit-optimization[cplex]>=0.3.0
+qiskit-optimization>=0.3.0
 matplotlib>=3.0.0
 
 # The following line isn't strictly required by qrao if it is used as

@@ -327,33 +327,58 @@ class MagicRounding(RoundingScheme):
         The goal is to make smarter choices about which bases to measure in
         using the trace values.
         """
-        # First, we make sure all Pauli expectation values have absolute value
-        # at most 1.  Otherwise, some of the probabilities computed below might
-        # be negative.
-        tv = np.clip(trace_values, -1, 1)
-        # basis_probs will have num_qubits number of elements.
-        # Each element will be a list of length 4 specifying the
-        # probability of picking the corresponding magic basis on that qubit.
-        basis_probs = []
-        for dvars in q2vars:
-            x = 0.5 * (1 - tv[dvars[0]])
-            y = 0.5 * (1 - tv[dvars[1]]) if (len(dvars) > 1) else 0
-            z = 0.5 * (1 - tv[dvars[2]]) if (len(dvars) > 2) else 0
-            # ppp:   mu±   = .5(I ± 1/sqrt(3)( X + Y + Z))
-            # ppm: X mu± X = .5(I ± 1/sqrt(3)( X + Y - Z))
-            # mpm: Y mu± Y = .5(I ± 1/sqrt(3)(-X + Y - Z))
-            # pmm: Z mu± Z = .5(I ± 1/sqrt(3)( X - Y - Z))
-            # fmt: off
-            ppp_mmm =   x   *   y   *   z   + (1-x) * (1-y) * (1-z)
-            ppm_mmp =   x   *   y   * (1-z) + (1-x) * (1-y) *   z
-            mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
-            pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
-            # fmt: on
-            probs = [ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp]
-            basis_probs.append(probs)
+        trace_values = np.clip(trace_values, -1, 1)
+        basis_probabilities = []
+        for variables in q2vars:
+            assert len(variables) in (1, 2, 3)
+            if len(variables) == 3:
+                x = 0.5 * (1 - trace_values[variables[0]])
+                y = 0.5 * (1 - trace_values[variables[1]])
+                z = 0.5 * (1 - trace_values[variables[2]])
+
+                # ppp:   mu±   = .5(I ± 1/sqrt(3)( X + Y + Z ))
+                # ppm: X mu± X = .5(I ± 1/sqrt(3)( X + Y - Z ))
+                # mpm: Y mu± Y = .5(I ± 1/sqrt(3)(-X + Y - Z ))
+                # pmm: Z mu± Z = .5(I ± 1/sqrt(3)( X - Y - Z ))
+                # fmt: off
+                ppp_mmm =   x   *   y   *   z   + (1-x) * (1-y) * (1-z)
+                ppm_mmp =   x   *   y   * (1-z) + (1-x) * (1-y) *   z
+                mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
+                pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
+                # fmt: on
+
+                basis_probabilities.append(
+                    np.real([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
+                )
+
+            elif len(variables) == 2:
+                x = 0.5 * (1 - trace_values[variables[0]])
+                z = 0.5 * (1 - trace_values[variables[1]])
+
+                # pp:   xi±   = .5(I ± 1/sqrt(2)( X + Z ))
+                # pm: X xi± X = .5(I ± 1/sqrt(2)( X - Z ))
+                # fmt: off
+                pp_mm =   x   *   z   + (1-x) * (1-z)
+                pm_mp =   x   * (1-z) + (1-x) *   z
+                # fmt: on
+
+                basis_probabilities.append(np.real([pp_mm, pm_mp]))
+
+            elif len(variables) == 1:
+                z = 0.5 * (1 - trace_values[variables[0]])
+
+                # p:   zi±   = .5(I ± 1/sqrt(1)( Z ))
+                # fmt: off
+                p = z + (1 - z)
+                # fmt: on
+
+                basis_probabilities.append(np.real([p]))
 
         bases = [
-            [self.rng.choice(4, size=1, p=probs)[0] for probs in basis_probs]
+            [
+                self.rng.choice(len(probabilities), p=probabilities)
+                for probabilities in basis_probabilities
+            ]
             for _ in range(self.shots)
         ]
         bases, basis_shots = np.unique(bases, axis=0, return_counts=True)

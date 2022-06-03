@@ -24,6 +24,7 @@ from qiskit.providers import Backend
 from qiskit.opflow import PrimitiveOp
 from qiskit.utils import QuantumInstance
 
+from qiskit.circuit.library import IGate
 from .encoding import z_to_31p_qrac_basis_circuit, z_to_21p_qrac_basis_circuit
 from .rounding_common import (
     RoundingSolutionSample,
@@ -119,6 +120,12 @@ class MagicRounding(RoundingScheme):
         1: {"Z": 0},
     }
 
+    _Z_TO_N1P_QRAC_BASIS = {
+        3: z_to_31p_qrac_basis_circuit,
+        2: z_to_21p_qrac_basis_circuit,
+        1: IGate(),
+    }
+
     def __init__(
         self,
         quantum_instance: QuantumInstance,
@@ -205,24 +212,17 @@ class MagicRounding(RoundingScheme):
 
         return [variable_values[variable] for variable in range(len(variable_values))]
 
-    @staticmethod
     def _make_circuits(
-        circuit: QuantumCircuit, bases: List[List[int]], measure: bool, q2vars
+        self, circuit: QuantumCircuit, bases: List[List[int]], measure: bool, q2vars
     ) -> List[QuantumCircuit]:
         measured_circuits = []
         for basis in bases:
             measured_circuit = circuit.copy()
             for (qubit, variables), operator in zip(enumerate(q2vars), basis):
-                if len(variables) == 3:
-                    measured_circuit.append(
-                        z_to_31p_qrac_basis_circuit([operator]).inverse(),
-                        qargs=[qubit],
-                    )
-                elif len(variables) == 2:
-                    measured_circuit.append(
-                        z_to_21p_qrac_basis_circuit([operator]).inverse(),
-                        qargs=[qubit],
-                    )
+                measured_circuit.append(
+                    self._Z_TO_N1P_QRAC_BASIS[len(variables)]([operator]).inverse(),
+                    qargs=[qubit],
+                )
             if measure:
                 measured_circuit.measure_all()
             measured_circuits.append(measured_circuit)

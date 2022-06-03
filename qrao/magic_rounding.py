@@ -213,7 +213,6 @@ class MagicRounding(RoundingScheme):
         for basis in bases:
             measured_circuit = circuit.copy()
             for (qubit, variables), operator in zip(enumerate(q2vars), basis):
-                assert len(variables) in (1, 2, 3)
                 if len(variables) == 3:
                     measured_circuit.append(
                         z_to_31p_qrac_basis_circuit([operator]).inverse(),
@@ -315,7 +314,7 @@ class MagicRounding(RoundingScheme):
 
     def _sample_bases_uniform(self, q2vars):
         bases = [
-            [self.rng.choice(len(variables)) for variables in q2vars]
+            [self.rng.choice(2 ** (len(variables) - 1)) for variables in q2vars]
             for _ in range(self.shots)
         ]
         bases, basis_shots = np.unique(bases, axis=0, return_counts=True)
@@ -330,50 +329,25 @@ class MagicRounding(RoundingScheme):
         trace_values = np.clip(trace_values, -1, 1)
         basis_probabilities = []
         for variables in q2vars:
-            assert len(variables) in (1, 2, 3)
-            if len(variables) == 3:
-                x = 0.5 * (1 - trace_values[variables[0]])
-                y = 0.5 * (1 - trace_values[variables[1]])
-                z = 0.5 * (1 - trace_values[variables[2]])
-
-                # ppp:   mu±   = .5(I ± 1/sqrt(3)( X + Y + Z ))
-                # ppm: X mu± X = .5(I ± 1/sqrt(3)( X + Y - Z ))
-                # mpm: Y mu± Y = .5(I ± 1/sqrt(3)(-X + Y - Z ))
-                # pmm: Z mu± Z = .5(I ± 1/sqrt(3)( X - Y - Z ))
-                # fmt: off
-                ppp_mmm =   x   *   y   *   z   + (1-x) * (1-y) * (1-z)
-                ppm_mmp =   x   *   y   * (1-z) + (1-x) * (1-y) *   z
-                mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
-                pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
-                # fmt: on
-
-                basis_probabilities.append(
-                    np.real([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
+            operators = [0.5 * (1 - trace_values[variable]) for variable in variables]
+            basis_operator_probabilities = []
+            for basis in range(2 ** (len(variables) - 1)):
+                operator_signs = map(int, format(basis, f"0{len(variables)}b"))
+                positive_product_factors = []
+                negative_product_factors = []
+                for variable, is_negative in enumerate(operator_signs):
+                    if is_negative:
+                        negative_product_factors.append(operators[variable])
+                        positive_product_factors.append(1 - operators[variable])
+                    else:
+                        positive_product_factors.append(operators[variable])
+                        negative_product_factors.append(1 - operators[variable])
+                positive_product = np.prod(positive_product_factors)
+                negative_product = np.prod(negative_product_factors)
+                basis_operator_probabilities.append(
+                    np.real(positive_product + negative_product)
                 )
-
-            elif len(variables) == 2:
-                x = 0.5 * (1 - trace_values[variables[0]])
-                z = 0.5 * (1 - trace_values[variables[1]])
-
-                # pp:   xi±   = .5(I ± 1/sqrt(2)( X + Z ))
-                # pm: X xi± X = .5(I ± 1/sqrt(2)( X - Z ))
-                # fmt: off
-                pp_mm =   x   *   z   + (1-x) * (1-z)
-                pm_mp =   x   * (1-z) + (1-x) *   z
-                # fmt: on
-
-                basis_probabilities.append(np.real([pp_mm, pm_mp]))
-
-            elif len(variables) == 1:
-                z = 0.5 * (1 - trace_values[variables[0]])
-
-                # p:   zi±   = .5(I ± 1/sqrt(1)( Z ))
-                # fmt: off
-                p = z + (1 - z)
-                # fmt: on
-
-                basis_probabilities.append(np.real([p]))
-
+            basis_probabilities.append(basis_operator_probabilities)
         bases = [
             [
                 self.rng.choice(len(probabilities), p=probabilities)

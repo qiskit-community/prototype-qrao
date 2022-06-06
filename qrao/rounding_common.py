@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit.opflow import PrimitiveOp
 
-from .encoding import QuantumRandomAccessEncoding, q2vars_from_var2op
+from .encoding import q2vars_from_var2op
 
 
 @dataclass
@@ -36,24 +36,14 @@ class RoundingContext:
 
     def __init__(
         self,
+        var2op: Dict[int, Tuple[int, PrimitiveOp]],
         *,
-        var2op: Optional[Dict[int, Tuple[int, PrimitiveOp]]] = None,
         q2vars: Optional[List[List[int]]] = None,
         trace_values=None,
         circuit=None
     ):
-        if encoding is not None:
-            if var2op is not None or q2vars is not None:
-                raise ValueError(
-                    "Neither var2op nor q2vars should be provided if encoding is"
-                )
-            self.var2op = encoding.var2op
-            self.q2vars = encoding.q2vars
-        else:
-            if var2op is None:
-                raise ValueError("Either an encoding or var2ops must be provided")
-            self.var2op = var2op
-            self.q2vars = q2vars_from_var2op(var2op) if q2vars is None else q2vars
+        self.var2op = var2op
+        self.q2vars = q2vars_from_var2op(var2op) if q2vars is None else q2vars
 
         self.trace_values = trace_values  # TODO: rename me
         self.circuit = circuit  # TODO: rename me

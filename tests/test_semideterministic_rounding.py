@@ -28,7 +28,7 @@ def test_semideterministic_rounding():
 
     rounding_scheme = SemideterministicRounding()
     tvs = [1, -1, 0, -1, 0.5, 1]
-    res = rounding_scheme.round(RoundingContext(trace_values=tvs, encoding=encoding))
+    res = rounding_scheme.round(RoundingContext(encoding.var2op, trace_values=tvs))
     assert len(res.samples) == 1
     x = res.samples[0].x.tolist()
     assert x[0] == 0
@@ -40,9 +40,7 @@ def test_semideterministic_rounding():
 
     with pytest.raises(ValueError):
         # Wrong number of trace values
-        rounding_scheme.round(
-            RoundingContext(trace_values=[1, 0, -1], encoding=encoding)
-        )
+        rounding_scheme.round(RoundingContext(encoding.var2op, trace_values=[1, 0, -1]))
     with pytest.raises(NotImplementedError):
         # Trace values not provided
-        rounding_scheme.round(RoundingContext(trace_values=None, encoding=encoding))
+        rounding_scheme.round(RoundingContext(encoding.var2op, trace_values=None))

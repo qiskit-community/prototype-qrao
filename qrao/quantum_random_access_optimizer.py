@@ -216,7 +216,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             circuit = None
 
         rounding_context = RoundingContext(
-            encoding=self.encoding,
+            self.encoding.var2op,
             trace_values=trace_values,
             circuit=circuit,
         )

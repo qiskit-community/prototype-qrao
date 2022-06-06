@@ -123,7 +123,7 @@ class MagicRounding(RoundingScheme):
     _Z_TO_N1P_QRAC_BASIS = {
         3: z_to_31p_qrac_basis_circuit,
         2: z_to_21p_qrac_basis_circuit,
-        1: IGate(),
+        1: IGate,
     }
 
     def __init__(

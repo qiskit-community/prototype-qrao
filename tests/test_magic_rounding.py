@@ -33,7 +33,7 @@ from qrao import (
     RoundingContext,
     MagicRounding,
 )
-from qrao.encoding import qrac_state_prep_1q, q2vars_from_var2op
+from qrao.encoding import state_from_dvar_values, q2vars_from_var2op
 
 # pylint: disable=protected-access
 
@@ -91,7 +91,7 @@ class TestMagicRounding(unittest.TestCase):
             for m0 in range(2):
                 for m1 in range(2):
                     for m2 in range(2):
-                        qrac_gate_circ = qrac_state_prep_1q(m0, m1, m2).to_circuit()
+                        qrac_gate_circ = state_from_dvar_values(m0, m1, m2).to_circuit()
                         magic_basis = 2 * (m1 ^ m2) + (m0 ^ m2)
                         tv = self.deterministic_trace_vals[magic_basis]
                         rounding_context = RoundingContext(
@@ -107,7 +107,7 @@ class TestMagicRounding(unittest.TestCase):
             for m0 in range(2):
                 for m1 in range(2):
                     for m2 in range(2):
-                        qrac_gate_circ = qrac_state_prep_1q(m0, m1, m2).to_circuit()
+                        qrac_gate_circ = state_from_dvar_values(m0, m1, m2).to_circuit()
                         sv = StateFn(qrac_gate_circ).eval().primitive
                         qrac_sv_circ = QuantumCircuit(1)
                         qrac_sv_circ.initialize(sv)
@@ -131,7 +131,7 @@ class TestMagicRounding(unittest.TestCase):
         for m0 in range(2):
             for m1 in range(2):
                 for m2 in range(2):
-                    qrac_state = qrac_state_prep_1q(m0, m1, m2).to_circuit()
+                    qrac_state = state_from_dvar_values(m0, m1, m2).to_circuit()
                     bases = [[2 * (m1 ^ m2) + (m0 ^ m2)]]
                     basis_counts = magic._evaluate_magic_bases(
                         qrac_state,

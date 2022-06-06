@@ -66,68 +66,73 @@ def _ceildiv(n: int, d: int) -> int:
     return (n - 1) // d + 1
 
 
-def z_to_n1p_qrac_basis(n, state) -> QuantumCircuit:
-    """Return the basis change corresponding to the (n,1,p)-QRAC
+def to_n1p_qrac_basis(n_dvars, basis) -> QuantumCircuit:
+    """Return the basis change corresponding to the (n_dvars, 1, p)-QRAC
+       for the given basis
 
     Args:
         n: The number of decision variables encoded in the qubit.
-        state: The index of the (n,1,p)-QRAC basis state to change basis to.
+        state: The index of the (n_dvars, 1, p)-QRAC basis to change to.
 
     Returns:
         The ``QuantumCircuit`` implementing the change of basis.
     """
-    if n not in (1, 2, 3):
-        raise ValueError(f"n_dvars must be 1, 2, or 3, not {n}.")
-    n_states = 2 ** (n - 1)
-    if state not in range(0, n_states):
-        raise ValueError(f"state must be in [0, {n_states}], not {state}.")
 
-    beta = np.arccos(1 / np.sqrt(n))
+    if n_dvars not in (1, 2, 3):
+        raise ValueError(f"n_dvars must be 1, 2, or 3, not {n_dvars}.")
+    n_states = 2 ** (n_dvars - 1)
+    if basis not in range(0, n_states):
+        raise ValueError(f"state must be in [0, {n_states}], not {basis}.")
+
+    beta = np.arccos(1 / np.sqrt(n_dvars))
 
     basis_change_qc = QuantumCircuit(1)
 
     # fmt: off
-    if state == 0:
+    if basis == 0:
         basis_change_qc.r(0     + -1 * beta, -1 * np.pi / n_states, 0)
-    elif state == 1:
+    elif basis == 1:
         basis_change_qc.r(np.pi + -1 * beta,  1 * np.pi / n_states, 0)
-    elif state == 2:
+    elif basis == 2:
         basis_change_qc.r(np.pi +  1 * beta,  1 * np.pi / n_states, 0)
-    elif state == 3:
+    elif basis == 3:
         basis_change_qc.r(0     +  1 * beta, -1 * np.pi / n_states, 0)
     # fmt: on
 
     return basis_change_qc
 
 
-def qrac_state_prep_1q(*dvars: int) -> CircuitStateFn:
-    """Prepare a single qubit QRAC state
+def state_from_dvar_values(*dvar_values: int) -> CircuitStateFn:
+    """Prepare a single-qubit QRAC state from a list of decision variables.
 
-      This function accepts 1, 2, or 3 arguments, in which case it generates a
-      1-QRAC, 2-QRAC, or 3-QRAC, respectively.
+      This function accepts 1, 2, or 3 decision variables, in which case it
+      generates a 1-QRAC, 2-QRAC, or 3-QRAC, respectively.
 
     Args:
-
-        m: The data to be encoded. Each argument must be 0 or 1.
+        dvars: The values of the decision variables to encode. Each decision 
+               variable must have value 0 or 1.
 
     Returns:
-
-        The circuit state function.
+        The single-qubit QRAC circuit state function.
 
     """
-    n_dvars = len(dvars)
+    n_dvars = len(dvar_values)
+
     if n_dvars not in (1, 2, 3):
         raise TypeError(
-            f"qrac_state_prep_1q requires 1, 2, or 3 arguments, not {n_dvars}."
+            f"state_from_dvars can take up to 3 decision variables, not {n_dvars}."
         )
-    if not all(dvar in (0, 1) for dvar in dvars):
-        raise ValueError("Each argument to qrac_state_prep_1q must be 0 or 1.")
+    if not all(dvar_value in (0, 1) for dvar_value in dvar_values):
+        raise ValueError("Each decision variable must have value 0 or 1.")
+
+    even_parity = sum(dvar_values) % 2
+    even_count = n_dvars % 2
 
     basis = sum(
-        [(2**i) * (dvars[i] ^ dvars[n_dvars - 1]) for i in range(n_dvars - 1)]
+        [(2**i) * (dvar_values[i] ^ dvar_values[n_dvars - 1]) for i in range(n_dvars - 1)]
     )
-    state = One if ((sum(dvars) % 2) if (n_dvars % 2 == 1) else (dvars[0])) else Zero
-    return (CircuitOp(z_to_n1p_qrac_basis(n_dvars, basis)) @ state).to_circuit_op()
+    state = One if (even_parity if even_count else dvar_values[0]) else Zero
+    return (CircuitOp(to_n1p_qrac_basis(n_dvars, basis)) @ state).to_circuit_op()
 
 
 def qrac_state_prep_multiqubit(
@@ -169,7 +174,7 @@ def qrac_state_prep_multiqubit(
     if remaining_dvars:
         raise ValueError(f"Not all dvars were included in q2vars: {remaining_dvars}")
 
-    qracs = [qrac_state_prep_1q(*qi_bits) for qi_bits in ordered_bits]
+    qracs = [state_from_dvar_values(*qi_bits) for qi_bits in ordered_bits]
     logical = reduce(lambda x, y: x ^ y, qracs)
     return logical
 

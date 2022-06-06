@@ -25,7 +25,7 @@ from qiskit.opflow import PrimitiveOp
 from qiskit.utils import QuantumInstance
 
 from qiskit.circuit.library import IGate
-from .encoding import z_to_n1p_qrac_basis
+from .encoding import to_n1p_qrac_basis
 from .rounding_common import (
     RoundingSolutionSample,
     RoundingScheme,
@@ -61,6 +61,18 @@ def _backend_name(backend: Backend) -> str:
 def _is_original_statevector_simulator(backend: Backend) -> bool:
     """Return True if the original statevector simulator"""
     return _backend_name(backend) == "statevector_simulator"
+
+
+def _parity(n):
+    parity = 0
+    while n:
+        parity = ~parity
+        n = n & (n - 1)
+    return parity >= 0
+
+
+def _bitfield(n, length):
+    return [n >> i & 1 for i in range(length - 1, -1, -1)]
 
 
 class MagicRoundingResult(RoundingResult):
@@ -100,24 +112,10 @@ class MagicRounding(RoundingScheme):
 
     """
 
-    _QRAC_DECODING = {
-        3: (
-            {"0": [0, 0, 0], "1": [1, 1, 1]},
-            {"0": [0, 1, 1], "1": [1, 0, 0]},
-            {"0": [1, 0, 1], "1": [0, 1, 0]},
-            {"0": [1, 1, 0], "1": [0, 0, 1]},
-        ),
-        2: (
-            {"0": [0, 0], "1": [1, 1]},
-            {"0": [0, 1], "1": [1, 0]},
-        ),
-        1: ({"0": [0], "1": [1]},),
-    }
-
     _OPERATOR_INDICES = {
-        3: {"X": 0, "Y": 1, "Z": 2},
-        2: {"X": 0, "Z": 1},
         1: {"Z": 0},
+        2: {"X": 0, "Z": 1},
+        3: {"X": 0, "Y": 1, "Z": 2},
     }
 
     def __init__(
@@ -186,25 +184,32 @@ class MagicRounding(RoundingScheme):
             )
         self._quantum_instance = quantum_instance
 
-    def _unpack_measurement_outcome(
-        self,
-        measured_bits: str,
-        basis: List[int],
-        var2op: Dict[int, Tuple[int, PrimitiveOp]],
-        q2vars: List[List[int]],
-    ) -> List[int]:
-        variable_values = {}
-        for qubit, variables in enumerate(q2vars):
-            decoded_variables = self._QRAC_DECODING[len(variables)][basis[qubit]][
-                measured_bits[qubit]
-            ]
-            for variable in variables:
-                _, operator = var2op[variable]
-                variable_values[variable] = decoded_variables[
-                    self._OPERATOR_INDICES[len(variables)][str(operator)]
-                ]
+    @staticmethod
+    def _dvar_values_from_bit(n_dvars, basis, bit):
+        dvars = [dvars for dvars in range(2 ** (n_dvars)) if _parity(dvars)][basis]
+        if bit:
+            dvars = ~dvars
+        dvars = _bitfield(dvars, n_dvars)
+        return dvars
 
-        return [variable_values[variable] for variable in range(len(variable_values))]
+    def _dvar_values_from_bits(
+        self,
+        bits: str,
+        bases: List[int],
+        operator_from_dvar: Dict[int, Tuple[int, PrimitiveOp]],
+        dvars_from_qubit: List[List[int]],
+    ) -> List[int]:
+        dvar_values = {}
+        for qubit, dvars in enumerate(dvars_from_qubit):
+            qubit_dvar_values = self._dvar_values_from_bit(
+                len(dvars), bases[qubit], bits[qubit]
+            )
+            for dvar in dvars:
+                _, operator = operator_from_dvar[dvar]
+                dvar_values[dvar] = qubit_dvar_values[
+                    self._OPERATOR_INDICES[len(dvars)][str(operator)]
+                ]
+        return [dvar_values[dvar] for dvar in range(len(dvar_values))]
 
     def _make_circuits(
         self, circuit: QuantumCircuit, bases: List[List[int]], measure: bool, q2vars
@@ -214,7 +219,7 @@ class MagicRounding(RoundingScheme):
             measured_circuit = circuit.copy()
             for (qubit, variables), operator in zip(enumerate(q2vars), basis):
                 measured_circuit.append(
-                    z_to_n1p_qrac_basis(len(variables), operator).inverse(),
+                    to_n1p_qrac_basis(len(variables), operator).inverse(),
                     qargs=[qubit],
                 )
             if measure:
@@ -298,7 +303,7 @@ class MagicRounding(RoundingScheme):
             for bitstr, count in counts.items():
 
                 # For each bit in the observed bitstring...
-                soln = self._unpack_measurement_outcome(bitstr, base, var2op, q2vars)
+                soln = self._dvar_values_from_bits(bitstr, base, var2op, q2vars)
                 soln = "".join([str(int(bit)) for bit in soln])
                 if soln in dv_counts:
                     dv_counts[soln] += count

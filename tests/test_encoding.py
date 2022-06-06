@@ -26,8 +26,8 @@ from qrao.encoding import (
     QuantumRandomAccessEncoding,
     EncodingCommutationVerifier,
     qrac_state_prep_multiqubit,
-    qrac_state_prep_1q,
-    z_to_n1p_qrac_basis,
+    state_from_dvar_values,
+    to_n1p_qrac_basis,
 )
 
 # pylint: disable=protected-access
@@ -220,12 +220,12 @@ def test_sense():
 
 def test_qrac_state_prep_1q():
     with pytest.raises(TypeError):
-        qrac_state_prep_1q(1, 0, 1, 0)
+        state_from_dvar_values(1, 0, 1, 0)
 
     for n in (1, 2, 3):
         p = QuantumRandomAccessEncoding(n).minimum_recovery_probability
         for m in itertools.product((0, 1), repeat=n):
-            logical = qrac_state_prep_1q(*m)
+            logical = state_from_dvar_values(*m)
             for i in range(n):
                 op = QuantumRandomAccessEncoding.OPERATORS[n - 1][i]
                 pauli_tv = (~logical @ op @ logical).eval()
@@ -236,9 +236,9 @@ def test_qrac_state_prep_1q():
 
 def test_undefined_basis_rotations():
     with pytest.raises(ValueError):
-        z_to_n1p_qrac_basis(3, 4)  # each element should be 0, 1, 2, or 3
+        to_n1p_qrac_basis(3, 4)  # each element should be 0, 1, 2, or 3
     with pytest.raises(ValueError):
-        z_to_n1p_qrac_basis(2, 2)  # each element should be 0 or 1
+        to_n1p_qrac_basis(2, 2)  # each element should be 0 or 1
 
 
 def test_unassigned_qubit():

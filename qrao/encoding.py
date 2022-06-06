@@ -26,27 +26,26 @@ of such states.
 
 """
 
-from typing import Tuple, List, Dict, Optional, Union
 from functools import reduce
 from itertools import chain
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import retworkx as rx
-
 from qiskit import QuantumCircuit
 from qiskit.opflow import (
+    CircuitOp,
+    CircuitStateFn,
     I,
-    X,
-    Y,
-    Z,
+    One,
     PauliOp,
     PauliSumOp,
     PrimitiveOp,
-    CircuitOp,
-    Zero,
-    One,
     StateFn,
-    CircuitStateFn,
+    X,
+    Y,
+    Z,
+    Zero,
 )
 
 from qiskit_optimization.problems.quadratic_program import QuadraticProgram
@@ -67,54 +66,41 @@ def _ceildiv(n: int, d: int) -> int:
     return (n - 1) // d + 1
 
 
-def z_to_31p_qrac_basis_circuit(basis: List[int]) -> QuantumCircuit:
-    """Return the basis rotation corresponding to the (3,1,p)-QRAC
+def z_to_n1p_qrac_basis(n, state) -> QuantumCircuit:
+    """Return the basis change corresponding to the (n,1,p)-QRAC
 
     Args:
-
-        basis: 0, 1, 2, or 3 for each qubit
-
-    Returns:
-        The ``QuantumCircuit`` implementing the rotation.
-    """
-    circ = QuantumCircuit(len(basis))
-    BETA = np.arccos(1 / np.sqrt(3))
-    for i, base in enumerate(reversed(basis)):
-        if base == 0:
-            circ.r(-BETA, -np.pi / 4, i)
-        elif base == 1:
-            circ.r(np.pi - BETA, np.pi / 4, i)
-        elif base == 2:
-            circ.r(np.pi + BETA, np.pi / 4, i)
-        elif base == 3:
-            circ.r(BETA, -np.pi / 4, i)
-        else:
-            raise ValueError(f"Unknown base: {base}")
-    return circ
-
-
-def z_to_21p_qrac_basis_circuit(basis: List[int]) -> QuantumCircuit:
-    """Return the basis rotation corresponding to the (2,1,p)-QRAC
-
-    Args:
-
-        basis: 0 or 1 for each qubit
+        n: The number of decision variables encoded in the qubit.
+        state: The index of the (n,1,p)-QRAC basis state to change basis to.
 
     Returns:
-        The ``QuantumCircuit`` implementing the rotation.
+        The ``QuantumCircuit`` implementing the change of basis.
     """
-    circ = QuantumCircuit(len(basis))
-    for i, base in enumerate(reversed(basis)):
-        if base == 0:
-            circ.r(-1 * np.pi / 4, -np.pi / 2, i)
-        elif base == 1:
-            circ.r(-3 * np.pi / 4, -np.pi / 2, i)
-        else:
-            raise ValueError(f"Unknown base: {base}")
-    return circ
+    if n not in (1, 2, 3):
+        raise ValueError(f"n_dvars must be 1, 2, or 3, not {n}.")
+    n_states = 2 ** (n - 1)
+    if state not in range(0, n_states):
+        raise ValueError(f"state must be in [0, {n_states}], not {state}.")
+
+    beta = np.arccos(1 / np.sqrt(n))
+
+    basis_change_qc = QuantumCircuit(1)
+
+    # fmt: off
+    if state == 0:
+        basis_change_qc.r(0     + -1 * beta, -1 * np.pi / n_states, 0)
+    elif state == 1:
+        basis_change_qc.r(np.pi + -1 * beta,  1 * np.pi / n_states, 0)
+    elif state == 2:
+        basis_change_qc.r(np.pi +  1 * beta,  1 * np.pi / n_states, 0)
+    elif state == 3:
+        basis_change_qc.r(0     +  1 * beta, -1 * np.pi / n_states, 0)
+    # fmt: on
+
+    return basis_change_qc
 
 
-def qrac_state_prep_1q(*m: int) -> CircuitStateFn:
+def qrac_state_prep_1q(*dvars: int) -> CircuitStateFn:
     """Prepare a single qubit QRAC state
 
       This function accepts 1, 2, or 3 arguments, in which case it generates a
@@ -129,60 +115,19 @@ def qrac_state_prep_1q(*m: int) -> CircuitStateFn:
         The circuit state function.
 
     """
-    if len(m) not in (1, 2, 3):
+    n_dvars = len(dvars)
+    if n_dvars not in (1, 2, 3):
         raise TypeError(
-            f"qrac_state_prep_1q requires 1, 2, or 3 arguments, not {len(m)}."
+            f"qrac_state_prep_1q requires 1, 2, or 3 arguments, not {n_dvars}."
         )
-    if not all(mi in (0, 1) for mi in m):
+    if not all(dvar in (0, 1) for dvar in dvars):
         raise ValueError("Each argument to qrac_state_prep_1q must be 0 or 1.")
 
-    if len(m) == 3:
-        # Prepare (3,1,p)-qrac
-
-        # In the following lines, the input bits are XOR'd to match the
-        # conventions used in the paper.
-
-        # To understand why this transformation happens,
-        # observe that the two states that define each magic basis
-        # correspond to the same bitstrings but with a global bitflip.
-
-        # Thus the three bits of information we use to construct these states are:
-        # c0,c1 : two bits to pick one of four magic bases
-        # c2: one bit to indicate which magic basis projector we are interested in.
-
-        c0 = m[0] ^ m[1] ^ m[2]
-        c1 = m[1] ^ m[2]
-        c2 = m[0] ^ m[2]
-
-        base = [2 * c1 + c2]
-        cob = z_to_31p_qrac_basis_circuit(base)
-        # This is a convention chosen to be consistent with https://arxiv.org/pdf/2111.03167v2.pdf
-        # See SI:4 second paragraph and observe that π+ = |0X0|, π- = |1X1|
-        sf = One if (c0) else Zero
-        # Apply the z_to_magic_basis circuit to either |0> or |1>
-        logical = CircuitOp(cob) @ sf
-    elif len(m) == 2:
-        # Prepare (2,1,p)-qrac
-        # (00,01) or (10,11)
-        c0 = m[0]
-        # (00,11) or (01,10)
-        c1 = m[0] ^ m[1]
-
-        base = [c1]
-        cob = z_to_21p_qrac_basis_circuit(base)
-        # This is a convention chosen to be consistent with https://arxiv.org/pdf/2111.03167v2.pdf
-        # See SI:4 second paragraph and observe that π+ = |0X0|, π- = |1X1|
-        sf = One if (c0) else Zero
-        # Apply the z_to_magic_basis circuit to either |0> or |1>
-        logical = CircuitOp(cob) @ sf
-    else:
-        assert len(m) == 1
-        c0 = m[0]
-        sf = One if (c0) else Zero
-
-        logical = sf
-
-    return logical.to_circuit_op()
+    basis = sum(
+        [(2**i) * (dvars[i] ^ dvars[n_dvars - 1]) for i in range(n_dvars - 1)]
+    )
+    state = One if ((sum(dvars) % 2) if (n_dvars % 2 == 1) else (dvars[0])) else Zero
+    return (CircuitOp(z_to_n1p_qrac_basis(n_dvars, basis)) @ state).to_circuit_op()
 
 
 def qrac_state_prep_multiqubit(

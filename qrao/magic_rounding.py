@@ -25,7 +25,7 @@ from qiskit.opflow import PrimitiveOp
 from qiskit.utils import QuantumInstance
 
 from qiskit.circuit.library import IGate
-from .encoding import z_to_31p_qrac_basis_circuit, z_to_21p_qrac_basis_circuit
+from .encoding import z_to_n1p_qrac_basis
 from .rounding_common import (
     RoundingSolutionSample,
     RoundingScheme,
@@ -118,12 +118,6 @@ class MagicRounding(RoundingScheme):
         3: {"X": 0, "Y": 1, "Z": 2},
         2: {"X": 0, "Z": 1},
         1: {"Z": 0},
-    }
-
-    _Z_TO_N1P_QRAC_BASIS = {
-        3: z_to_31p_qrac_basis_circuit,
-        2: z_to_21p_qrac_basis_circuit,
-        1: IGate,
     }
 
     def __init__(
@@ -220,7 +214,7 @@ class MagicRounding(RoundingScheme):
             measured_circuit = circuit.copy()
             for (qubit, variables), operator in zip(enumerate(q2vars), basis):
                 measured_circuit.append(
-                    self._Z_TO_N1P_QRAC_BASIS[len(variables)]([operator]).inverse(),
+                    z_to_n1p_qrac_basis(len(variables), operator).inverse(),
                     qargs=[qubit],
                 )
             if measure:

@@ -27,8 +27,7 @@ from qrao.encoding import (
     EncodingCommutationVerifier,
     qrac_state_prep_multiqubit,
     qrac_state_prep_1q,
-    z_to_31p_qrac_basis_circuit,
-    z_to_21p_qrac_basis_circuit,
+    z_to_n1p_qrac_basis,
 )
 
 # pylint: disable=protected-access
@@ -237,9 +236,9 @@ def test_qrac_state_prep_1q():
 
 def test_undefined_basis_rotations():
     with pytest.raises(ValueError):
-        z_to_31p_qrac_basis_circuit([4])  # each element should be 0, 1, 2, or 3
+        z_to_n1p_qrac_basis(3, 4)  # each element should be 0, 1, 2, or 3
     with pytest.raises(ValueError):
-        z_to_21p_qrac_basis_circuit([2])  # each element should be 0 or 1
+        z_to_n1p_qrac_basis(2, 2)  # each element should be 0 or 1
 
 
 def test_unassigned_qubit():

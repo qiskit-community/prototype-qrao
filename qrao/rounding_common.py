@@ -37,7 +37,6 @@ class RoundingContext:
     def __init__(
         self,
         *,
-        encoding: Optional[QuantumRandomAccessEncoding] = None,
         var2op: Optional[Dict[int, Tuple[int, PrimitiveOp]]] = None,
         q2vars: Optional[List[List[int]]] = None,
         trace_values=None,
@@ -50,17 +49,11 @@ class RoundingContext:
                 )
             self.var2op = encoding.var2op
             self.q2vars = encoding.q2vars
-            # We save the encoding here, as a temporary hack, so that the magic
-            # rounding backend can ensure that it is a 3-QRAC.  Once the magic
-            # rounding backend supports all QRACs, we will remove this
-            # (protected) attribute.
-            self._encoding = encoding
         else:
             if var2op is None:
                 raise ValueError("Either an encoding or var2ops must be provided")
             self.var2op = var2op
             self.q2vars = q2vars_from_var2op(var2op) if q2vars is None else q2vars
-            self._encoding = None
 
         self.trace_values = trace_values  # TODO: rename me
         self.circuit = circuit  # TODO: rename me

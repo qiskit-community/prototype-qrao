@@ -141,7 +141,7 @@ class TestMagicRounding(unittest.TestCase):
                         qrac_state,
                         bases=bases,
                         basis_shots=[10],
-                        q2vars=[[0, 1, 2]],
+                        qubit_to_dvars=[[0, 1, 2]],
                     )
                     self.assertEqual(len(basis_counts), 1)
                     self.assertEqual(int(list(basis_counts[0].keys())[0]), m0 ^ m1 ^ m2)
@@ -253,7 +253,7 @@ class TestMagicRounding(unittest.TestCase):
         )
         ops = [X, Y, Z]
         var2op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
-        q2vars = get_qubit_from_op_assignment(var2op)
+        qubit_to_dvars = get_qubit_from_op_assignment(var2op)
         magic = MagicRounding(quantum_instance=rounding_qi, basis_sampling="weighted")
         sample_bases_weighted = magic._sample_bases_weighted
 
@@ -267,7 +267,7 @@ class TestMagicRounding(unittest.TestCase):
         for tv0, b0 in stable_inputs:
             for tv1, b1 in stable_inputs:
                 tv = tv0 + tv1
-                bases, basis_shots = sample_bases_weighted(q2vars, tv)
+                bases, basis_shots = sample_bases_weighted(qubit_to_dvars, tv)
                 self.assertTrue(np.all(np.array([b0, b1]) == bases))
                 self.assertEqual(basis_shots, (shots,))
                 self.assertEqual(bases.shape, (1, num_qubits))  # 1 == deterministic
@@ -286,14 +286,14 @@ class TestMagicRounding(unittest.TestCase):
         num_qubits = 1
         ops = [X, Y, Z]
         var2op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
-        q2vars = get_qubit_from_op_assignment(var2op)
+        qubit_to_dvars = get_qubit_from_op_assignment(var2op)
         shots = 1000  # set high enough to "always" have four distinct results
         qi = QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=shots)
         magic = MagicRounding(
             quantum_instance=qi,
             basis_sampling="uniform",
         )
-        bases, basis_shots = magic._sample_bases_uniform(q2vars)
+        bases, basis_shots = magic._sample_bases_uniform(qubit_to_dvars)
         self.assertEqual(basis_shots.shape, (4,))
         self.assertEqual(np.sum(basis_shots), shots)
         self.assertEqual(bases.shape, (4, num_qubits))

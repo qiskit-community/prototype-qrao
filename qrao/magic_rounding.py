@@ -212,12 +212,16 @@ class MagicRounding(RoundingScheme):
         return [dvar_values[dvar] for dvar in range(len(dvar_values))]
 
     def _make_circuits(
-        self, circuit: QuantumCircuit, bases: List[List[int]], measure: bool, q2vars
+        self,
+        circuit: QuantumCircuit,
+        bases: List[List[int]],
+        measure: bool,
+        qubit_to_dvars,
     ) -> List[QuantumCircuit]:
         measured_circuits = []
         for basis in bases:
             measured_circuit = circuit.copy()
-            for (qubit, variables), operator in zip(enumerate(q2vars), basis):
+            for (qubit, variables), operator in zip(enumerate(qubit_to_dvars), basis):
                 measured_circuit.append(
                     change_to_n1p_qrac_basis(len(variables), operator).inverse(),
                     qargs=[qubit],
@@ -227,7 +231,7 @@ class MagicRounding(RoundingScheme):
             measured_circuits.append(measured_circuit)
         return measured_circuits
 
-    def _evaluate_magic_bases(self, circuit, bases, basis_shots, q2vars):
+    def _evaluate_magic_bases(self, circuit, bases, basis_shots, qubit_to_dvars):
         """
         Given a circuit you wish to measure, a list of magic bases to measure,
         and a list of the shots to use for each magic basis configuration.
@@ -238,7 +242,7 @@ class MagicRounding(RoundingScheme):
         len(bases) == len(basis_shots) == len(basis_counts)
         """
         measure = not _is_original_statevector_simulator(self.quantum_instance.backend)
-        circuits = self._make_circuits(circuit, bases, measure, q2vars)
+        circuits = self._make_circuits(circuit, bases, measure, qubit_to_dvars)
 
         # Execute each of the rotated circuits and collect the results
 
@@ -290,7 +294,7 @@ class MagicRounding(RoundingScheme):
 
         return basis_counts
 
-    def _compute_dv_counts(self, basis_counts, bases, var2op, q2vars):
+    def _compute_dv_counts(self, basis_counts, bases, var2op, qubit_to_dvars):
         """
         Given a list of bases, basis_shots, and basis_counts, convert
         each observed bitstrings to its corresponding decision variable
@@ -304,7 +308,7 @@ class MagicRounding(RoundingScheme):
 
                 # For each bit in the observed bitstring...
                 soln = self._dvar_values_from_bits(
-                    list(map(int, list(bitstr))), base, var2op, q2vars
+                    list(map(int, list(bitstr))), base, var2op, qubit_to_dvars
                 )
                 soln = "".join([str(int(bit)) for bit in soln])
                 if soln in dv_counts:
@@ -313,15 +317,15 @@ class MagicRounding(RoundingScheme):
                     dv_counts[soln] = count
         return dv_counts
 
-    def _sample_bases_uniform(self, q2vars):
+    def _sample_bases_uniform(self, qubit_to_dvars):
         bases = [
-            [self.rng.choice(2 ** (len(variables) - 1)) for variables in q2vars]
+            [self.rng.choice(2 ** (len(variables) - 1)) for variables in qubit_to_dvars]
             for _ in range(self.shots)
         ]
         bases, basis_shots = np.unique(bases, axis=0, return_counts=True)
         return bases, basis_shots
 
-    def _sample_bases_weighted(self, q2vars, trace_values):
+    def _sample_bases_weighted(self, qubit_to_dvars, trace_values):
         """Perform weighted sampling from the expectation values.
 
         The goal is to make smarter choices about which bases to measure in
@@ -329,7 +333,7 @@ class MagicRounding(RoundingScheme):
         """
         trace_values = np.clip(trace_values, -1, 1)
         basis_probabilities = []
-        for variables in q2vars:
+        for variables in qubit_to_dvars:
             operators = [0.5 * (1 - trace_values[variable]) for variable in variables]
             basis_operator_probabilities = []
             for basis in range(2 ** (len(variables) - 1)):
@@ -374,14 +378,16 @@ class MagicRounding(RoundingScheme):
 
         # We've already checked that it is one of these two in the constructor
         if self.basis_sampling == "uniform":
-            bases, basis_shots = self._sample_bases_uniform(ctx.q2vars)
+            bases, basis_shots = self._sample_bases_uniform(ctx.qubit_to_dvars)
         elif self.basis_sampling == "weighted":
             if trace_values is None:
                 raise NotImplementedError(
                     "Magic rounding with weighted sampling requires the trace values "
                     "to be available, but they are not."
                 )
-            bases, basis_shots = self._sample_bases_weighted(ctx.q2vars, trace_values)
+            bases, basis_shots = self._sample_bases_weighted(
+                ctx.qubit_to_dvars, trace_values
+            )
         else:  # pragma: no cover
             raise NotImplementedError(
                 f'No such basis sampling method: "{self.basis_sampling}".'
@@ -393,12 +399,12 @@ class MagicRounding(RoundingScheme):
         # and return the circuit results
 
         basis_counts = self._evaluate_magic_bases(
-            circuit, bases, basis_shots, ctx.q2vars
+            circuit, bases, basis_shots, ctx.qubit_to_dvars
         )
         # keys will be configurations of decision variables
         # values will be total number of observations.
         soln_counts = self._compute_dv_counts(
-            basis_counts, bases, ctx.var2op, ctx.q2vars
+            basis_counts, bases, ctx.var2op, ctx.qubit_to_dvars
         )
 
         soln_samples = [

@@ -65,14 +65,18 @@ def test_31p_qrac_encoding():
         encoding.get_state({**m, 5: 0})
     with pytest.raises(ValueError):
         encoding.get_state({**m, 7: 2})
-    q2vars_modified = deepcopy(encoding.qubit_to_dvars)
-    q2vars_modified[0][2] = 17  # add a duplicate (see the assertion above)
+    qubit_to_dvars_modified = deepcopy(encoding.qubit_to_dvars)
+    qubit_to_dvars_modified[0][2] = 17  # add a duplicate (see the assertion above)
     with pytest.raises(ValueError):
-        get_problem_encoding_state(m, q2vars_modified, encoding.max_dvars_per_qubit)
-    q2vars_modified = deepcopy(encoding.qubit_to_dvars)
-    q2vars_modified[0].append(15)  # attempt to have four variables on a qubit
+        get_problem_encoding_state(
+            m, qubit_to_dvars_modified, encoding.max_dvars_per_qubit
+        )
+    qubit_to_dvars_modified = deepcopy(encoding.qubit_to_dvars)
+    qubit_to_dvars_modified[0].append(15)  # attempt to have four variables on a qubit
     with pytest.raises(ValueError):
-        get_problem_encoding_state(m, q2vars_modified, encoding.max_dvars_per_qubit)
+        get_problem_encoding_state(
+            m, qubit_to_dvars_modified, encoding.max_dvars_per_qubit
+        )
     del m[7]
     with pytest.raises(ValueError):
         encoding.get_state(m)

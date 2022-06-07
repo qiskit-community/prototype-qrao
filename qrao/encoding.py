@@ -18,10 +18,9 @@ of such states.
 .. autosummary::
    :toctree: ../stubs/
 
-   z_to_31p_qrac_basis_circuit
-   z_to_21p_qrac_basis_circuit
-   qrac_state_prep_1q
-   qrac_state_prep_multiqubit
+   change_to_n1p_qrac_basis
+   get_dvars_encoding_state
+   get_problem_encoding_state
    QuantumRandomAccessEncoding
 
 """

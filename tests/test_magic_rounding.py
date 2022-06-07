@@ -154,7 +154,7 @@ class TestMagicRounding(unittest.TestCase):
         ops = [X, Y, Z]
         dvar_to_op = {i: (i // 3, ops[i % 3]) for i in range(6)}
         magic = MagicRounding(self.rounding_qi)
-        compute_dv_counts = magic._compute_dv_counts
+        compute_dv_counts = magic._get_dvar_values_counts
         solns = []
         for b0 in range(4):
             for b1 in range(4):

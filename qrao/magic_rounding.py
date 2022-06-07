@@ -176,7 +176,11 @@ class MagicRounding(RoundingScheme):
         self._quantum_instance = quantum_instance
 
     @staticmethod
-    def _dvar_values_from_bit(num_dvars: int, basis: int, bit: int):
+    def _get_dvar_values_from_bit(num_dvars: int, basis: int, bit: int):
+        """
+        Return the decision variables values measured from the qubit encoding them
+        in the given basis.
+        """
         dvars = [dvars for dvars in range(2 ** (num_dvars)) if _get_parity(dvars)][
             basis
         ]
@@ -185,38 +189,48 @@ class MagicRounding(RoundingScheme):
         dvars = _get_bitfield(dvars, num_dvars)
         return dvars
 
-    def _dvar_values_from_bits(
+    def _get_dvar_values_from_bits(
         self,
         bits: List[int],
         bases: List[int],
         dvar_to_op: Dict[int, Tuple[int, PrimitiveOp]],
         qubit_to_dvars: List[List[int]],
     ) -> List[int]:
+        """
+        Return the decision variables values measured from the qubits encoding them
+        in the given bases.
+        """
         dvar_values = {}
         for qubit, dvars in enumerate(qubit_to_dvars):
-            qubit_dvar_values = self._dvar_values_from_bit(
+            qubit_dvar_values = self._get_dvar_values_from_bit(
                 len(dvars), bases[qubit], bits[qubit]
             )
             for dvar in dvars:
                 _, operator = dvar_to_op[dvar]
                 dvar_values[dvar] = qubit_dvar_values[
-                    QuantumRandomAccessEncoding.NUM_DVARS_TO_OPS[len(dvars)].index(operator)
+                    QuantumRandomAccessEncoding.NUM_DVARS_TO_OPS[len(dvars)].index(
+                        operator
+                    )
                 ]
         return [dvar_values[dvar] for dvar in range(len(dvar_values))]
 
-    def _make_circuits(
+    def _get_basis_measurement_circuits(
         self,
         circuit: QuantumCircuit,
         bases: List[List[int]],
         measure: bool,
         qubit_to_dvars,
     ) -> List[QuantumCircuit]:
+        """
+        Return the circuits measuring the qubits encoding the decision variables
+        in the given bases.
+        """
         measured_circuits = []
         for basis in bases:
             measured_circuit = circuit.copy()
-            for (qubit, variables), operator in zip(enumerate(qubit_to_dvars), basis):
+            for (qubit, dvars), operator in zip(enumerate(qubit_to_dvars), basis):
                 measured_circuit.append(
-                    change_to_n1p_qrac_basis(len(variables), operator).inverse(),
+                    change_to_n1p_qrac_basis(len(dvars), operator).inverse(),
                     qargs=[qubit],
                 )
             if measure:
@@ -227,17 +241,18 @@ class MagicRounding(RoundingScheme):
     def _evaluate_magic_bases(self, circuit, bases, basis_shots, qubit_to_dvars):
         """
         Given a circuit you wish to measure, a list of magic bases to measure,
-        and a list of the shots to use for each magic basis configuration.
-
-        Measure the provided circuit in the magic bases given and return the counts
+        and a list of the shots to use for each magic basis configuration,
+        measure the provided circuit in the magic bases given and return the counts
         dictionaries associated with each basis measurement.
 
         len(bases) == len(basis_shots) == len(basis_counts)
         """
         measure = not _is_original_statevector_simulator(self.quantum_instance.backend)
-        circuits = self._make_circuits(circuit, bases, measure, qubit_to_dvars)
+        circuits = self._get_basis_measurement_circuits(
+            circuit, bases, measure, qubit_to_dvars
+        )
 
-        # Execute each of the rotated circuits and collect the results
+        # Execute each of the rotated circuits and collect the results.
 
         # Batch the circuits into jobs where each group has the same number of
         # shots, so that you can wait for the queue as few times as possible if
@@ -271,7 +286,7 @@ class MagicRounding(RoundingScheme):
             self.quantum_instance.set_config(shots=overall_shots)
         assert None not in basis_counts
 
-        # Process the outcomes and extract expectation of decision vars
+        # Process the outcomes and extract expectation of decision variables.
 
         # The "statevector_simulator", unlike all the others, returns
         # probabilities instead of integer counts.  So if probabilities are
@@ -287,28 +302,27 @@ class MagicRounding(RoundingScheme):
 
         return basis_counts
 
-    def _compute_dv_counts(self, basis_counts, bases, dvar_to_op, qubit_to_dvars):
+    def _get_dvar_values_counts(self, basis_counts, bases, dvar_to_op, qubit_to_dvars):
         """
         Given a list of bases, basis_shots, and basis_counts, convert
         each observed bitstrings to its corresponding decision variable
         configuration. Return the counts of each decision variable configuration.
         """
-        dv_counts = {}
+        dvar_values_counts = {}
         for i, counts in enumerate(basis_counts):
-            base = bases[i]
+            basis = bases[i]
             # For each measurement outcome...
-            for bitstr, count in counts.items():
-
+            for bits, count in counts.items():
                 # For each bit in the observed bitstring...
-                soln = self._dvar_values_from_bits(
-                    list(map(int, list(bitstr))), base, dvar_to_op, qubit_to_dvars
+                solution = self._get_dvar_values_from_bits(
+                    list(map(int, list(bits))), basis, dvar_to_op, qubit_to_dvars
                 )
-                soln = "".join([str(int(bit)) for bit in soln])
-                if soln in dv_counts:
-                    dv_counts[soln] += count
+                solution = "".join([str(int(bit)) for bit in solution])
+                if solution in dvar_values_counts:
+                    dvar_values_counts[solution] += count
                 else:
-                    dv_counts[soln] = count
-        return dv_counts
+                    dvar_values_counts[solution] = count
+        return dvar_values_counts
 
     def _sample_bases_uniform(self, qubit_to_dvars):
         bases = [
@@ -369,7 +383,7 @@ class MagicRounding(RoundingScheme):
                 "semideterministic rounding instead."
             )
 
-        # We've already checked that it is one of these two in the constructor
+        # We've already checked that it is one of these two in the constructor.
         if self.basis_sampling == "uniform":
             bases, basis_shots = self._sample_bases_uniform(ctx.qubit_to_dvars)
         elif self.basis_sampling == "weighted":
@@ -387,35 +401,35 @@ class MagicRounding(RoundingScheme):
             )
 
         assert self.shots == np.sum(basis_shots)
-        # For each of the Magic Bases sampled above, measure
-        # the appropriate number of times (given by basis_shots)
-        # and return the circuit results
 
+        # For each of the magic bases sampled above, measure
+        # basis_shots times and return the circuit results.
         basis_counts = self._evaluate_magic_bases(
             circuit, bases, basis_shots, ctx.qubit_to_dvars
         )
-        # keys will be configurations of decision variables
-        # values will be total number of observations.
-        soln_counts = self._compute_dv_counts(
+
+        # Keys are decision variable values.
+        # Values are the total number of observations.
+        solution_counts = self._get_dvar_values_counts(
             basis_counts, bases, ctx.dvar_to_op, ctx.qubit_to_dvars
         )
 
-        soln_samples = [
+        solution_samples = [
             RoundingSolutionSample(
-                x=np.asarray([int(bit) for bit in soln]),
+                x=np.asarray([int(bit) for bit in solution]),
                 probability=count / self.shots,
             )
-            for soln, count in soln_counts.items()
+            for solution, count in solution_counts.items()
         ]
 
-        assert np.isclose(sum(soln_counts.values()), self.shots), "{} != {}".format(
-            sum(soln_counts.values()), self.shots
-        )
+        assert np.isclose(
+            sum(solution_counts.values()), self.shots
+        ), f"{sum(solution_counts.values())} != {self.shots}"
         assert len(bases) == len(basis_shots) == len(basis_counts)
         stop_time = time.time()
 
         return MagicRoundingResult(
-            samples=soln_samples,
+            samples=solution_samples,
             bases=bases,
             basis_shots=basis_shots,
             basis_counts=basis_counts,

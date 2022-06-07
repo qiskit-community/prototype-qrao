@@ -179,7 +179,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         # Get the ordered list of operators that correspond to each decision
         # variable.  This line assumes the variables are numbered consecutively
         # starting with 0.  Note that under this assumption, the following
-        # range is equivalent to `sorted(self.encoding.var2op.keys())`.  See
+        # range is equivalent to `sorted(self.encoding.dvar_to_op.keys())`.  See
         # encoding.py for more commentary on this assumption, which always
         # holds when starting from a `QuadraticProgram`.
         variable_ops = [

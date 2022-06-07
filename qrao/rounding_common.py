@@ -36,15 +36,15 @@ class RoundingContext:
 
     def __init__(
         self,
-        var2op: Dict[int, Tuple[int, PrimitiveOp]],
+        dvar_to_op: Dict[int, Tuple[int, PrimitiveOp]],
         *,
         qubit_to_dvars: Optional[List[List[int]]] = None,
         trace_values=None,
         circuit=None
     ):
-        self.var2op = var2op
+        self.dvar_to_op = dvar_to_op
         self.qubit_to_dvars = (
-            get_qubit_from_op_assignment(var2op)
+            get_qubit_from_op_assignment(dvar_to_op)
             if qubit_to_dvars is None
             else qubit_to_dvars
         )

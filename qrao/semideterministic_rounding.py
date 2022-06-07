@@ -58,10 +58,10 @@ class SemideterministicRounding(RoundingScheme):
                 "Semideterministic rounding requires that trace_values be available."
             )
 
-        if len(trace_values) != len(ctx.var2op):
+        if len(trace_values) != len(ctx.dvar_to_op):
             raise ValueError(
                 f"trace_values has length {len(trace_values)}, "
-                "but there are {len(ctx.var2op)} decision variables."
+                "but there are {len(ctx.dvar_to_op)} decision variables."
             )
 
         def sign(val) -> int:

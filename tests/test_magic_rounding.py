@@ -80,7 +80,7 @@ class TestMagicRounding(unittest.TestCase):
     def test_round_on_gate_and_sv_circs(self):
         """Test MagicRounding"""
         ops = [X, Y, Z]
-        var2op = {i: (i // 3, ops[i % 3]) for i in range(3)}
+        dvar_to_op = {i: (i // 3, ops[i % 3]) for i in range(3)}
         qi = QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=1000)
         magic = MagicRounding(
             quantum_instance=qi,
@@ -97,7 +97,7 @@ class TestMagicRounding(unittest.TestCase):
                         magic_basis = 2 * (m1 ^ m2) + (m0 ^ m2)
                         tv = self.deterministic_trace_vals[magic_basis]
                         rounding_context = RoundingContext(
-                            var2op, trace_values=tv, circuit=qrac_gate_circ
+                            dvar_to_op, trace_values=tv, circuit=qrac_gate_circ
                         )
                         rounding_res = magic.round(rounding_context)
                         self.assertEqual(
@@ -118,7 +118,7 @@ class TestMagicRounding(unittest.TestCase):
                         magic_basis = 2 * (m1 ^ m2) + (m0 ^ m2)
                         tv = self.deterministic_trace_vals[magic_basis]
                         rounding_context = RoundingContext(
-                            var2op, trace_values=tv, circuit=qrac_sv_circ
+                            dvar_to_op, trace_values=tv, circuit=qrac_sv_circ
                         )
                         rounding_res = magic.round(rounding_context)
                         self.assertEqual(
@@ -152,7 +152,7 @@ class TestMagicRounding(unittest.TestCase):
         properly. This also effectively tests `unpack_measurement_outcome`.
         """
         ops = [X, Y, Z]
-        var2op = {i: (i // 3, ops[i % 3]) for i in range(6)}
+        dvar_to_op = {i: (i // 3, ops[i % 3]) for i in range(6)}
         magic = MagicRounding(self.rounding_qi)
         compute_dv_counts = magic._compute_dv_counts
         solns = []
@@ -164,8 +164,8 @@ class TestMagicRounding(unittest.TestCase):
                     dv_counts = compute_dv_counts(
                         basis_counts,
                         bases,
-                        var2op,
-                        get_qubit_from_op_assignment(var2op),
+                        dvar_to_op,
+                        get_qubit_from_op_assignment(dvar_to_op),
                     )
                     solns.append(list(dv_counts.keys())[0])
         ref = [
@@ -252,8 +252,8 @@ class TestMagicRounding(unittest.TestCase):
             backend=Aer.get_backend("aer_simulator"), shots=shots
         )
         ops = [X, Y, Z]
-        var2op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
-        qubit_to_dvars = get_qubit_from_op_assignment(var2op)
+        dvar_to_op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
+        qubit_to_dvars = get_qubit_from_op_assignment(dvar_to_op)
         magic = MagicRounding(quantum_instance=rounding_qi, basis_sampling="weighted")
         sample_bases_weighted = magic._sample_bases_weighted
 
@@ -274,9 +274,9 @@ class TestMagicRounding(unittest.TestCase):
 
         # Both trace values and a circuit must be provided
         with self.assertRaises(NotImplementedError):
-            magic.round(RoundingContext(var2op, trace_values=[1.0]))
+            magic.round(RoundingContext(dvar_to_op, trace_values=[1.0]))
         with self.assertRaises(NotImplementedError):
-            magic.round(RoundingContext(var2op, circuit=self.gate_circ))
+            magic.round(RoundingContext(dvar_to_op, circuit=self.gate_circ))
 
     def test_sample_bases_uniform(self):
         """
@@ -285,8 +285,8 @@ class TestMagicRounding(unittest.TestCase):
         num_nodes = 3
         num_qubits = 1
         ops = [X, Y, Z]
-        var2op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
-        qubit_to_dvars = get_qubit_from_op_assignment(var2op)
+        dvar_to_op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
+        qubit_to_dvars = get_qubit_from_op_assignment(dvar_to_op)
         shots = 1000  # set high enough to "always" have four distinct results
         qi = QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=shots)
         magic = MagicRounding(
@@ -301,9 +301,9 @@ class TestMagicRounding(unittest.TestCase):
         # A circuit must be provided, but trace values need not be
         circuit = QuantumCircuit(1)
         circuit.h(0)
-        magic.round(RoundingContext(var2op, circuit=circuit))
+        magic.round(RoundingContext(dvar_to_op, circuit=circuit))
         with self.assertRaises(NotImplementedError):
-            magic.round(RoundingContext(var2op))
+            magic.round(RoundingContext(dvar_to_op))
 
 
 # def test_unsupported_qrac():
@@ -336,7 +336,7 @@ def test_magic_rounding_statevector_simulator():
     """
     qi = QuantumInstance(Aer.get_backend("statevector_simulator"), shots=10)
     ops = [X, Y, Z]
-    var2op = {i: (i // 3, ops[i % 3]) for i in range(3)}
+    dvar_to_op = {i: (i // 3, ops[i % 3]) for i in range(3)}
     with pytest.warns(UserWarning):
         magic = MagicRounding(
             quantum_instance=qi,
@@ -346,7 +346,7 @@ def test_magic_rounding_statevector_simulator():
     circ.h(0)
     circ.h(1)
     circ.cx(0, 1)
-    ctx = RoundingContext(var2op, circuit=circ, trace_values=[1, 1, 1])
+    ctx = RoundingContext(dvar_to_op, circuit=circ, trace_values=[1, 1, 1])
     res = magic.round(ctx)
     assert sum(s.probability for s in res.samples) == pytest.approx(1)
 

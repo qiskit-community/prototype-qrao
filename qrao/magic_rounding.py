@@ -294,7 +294,7 @@ class MagicRounding(RoundingScheme):
 
         return basis_counts
 
-    def _compute_dv_counts(self, basis_counts, bases, var2op, qubit_to_dvars):
+    def _compute_dv_counts(self, basis_counts, bases, dvar_to_op, qubit_to_dvars):
         """
         Given a list of bases, basis_shots, and basis_counts, convert
         each observed bitstrings to its corresponding decision variable
@@ -308,7 +308,7 @@ class MagicRounding(RoundingScheme):
 
                 # For each bit in the observed bitstring...
                 soln = self._dvar_values_from_bits(
-                    list(map(int, list(bitstr))), base, var2op, qubit_to_dvars
+                    list(map(int, list(bitstr))), base, dvar_to_op, qubit_to_dvars
                 )
                 soln = "".join([str(int(bit)) for bit in soln])
                 if soln in dv_counts:
@@ -404,7 +404,7 @@ class MagicRounding(RoundingScheme):
         # keys will be configurations of decision variables
         # values will be total number of observations.
         soln_counts = self._compute_dv_counts(
-            basis_counts, bases, ctx.var2op, ctx.qubit_to_dvars
+            basis_counts, bases, ctx.dvar_to_op, ctx.qubit_to_dvars
         )
 
         soln_samples = [

@@ -108,8 +108,8 @@ def get_dvars_encoding_state(*dvar_values: int) -> CircuitStateFn:
         generates a 1-QRAC, 2-QRAC, or 3-QRAC, respectively.
 
     Args:
-        dvars: The values of the decision variables to encode. Each decision
-               variable must have value 0 or 1.
+        dvar_values: The values of the decision variables to encode. Each decision
+                     variable must have value 0 or 1.
 
     Returns:
         The single-qubit QRAC circuit state function.
@@ -143,6 +143,18 @@ def get_problem_encoding_state(
     dvars_from_qubit: List[List[int]],
     max_dvars_per_qubit: int,
 ) -> CircuitStateFn:
+    """Prepare a composite state of single-qubit QRAC states encoding the specified
+       problem from a list of decision variable values, assignments of decision
+       variables to qubits, and the maximum number of decision variables that can be
+       encoded on a given qubit.
+
+    Args:
+        dvar_values: The values of the decision variables to encode. Each decision
+                     variable must have value 0 or 1.
+
+    Returns:
+        The composite circuit state function encoding the specified problem.
+    """
     remaining_dvars = set(
         dvar_values if isinstance(dvar_values, dict) else range(len(dvar_values))
     )

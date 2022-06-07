@@ -354,13 +354,13 @@ class QuantumRandomAccessEncoding:
 
     def term_to_op(self, *dvars: int) -> PauliOp:
         ops = [I] * self.num_qubits
-        done = set()
+        done_qubits = set()
         for dvar in dvars:
-            pos, op = self._dvar_to_op[dvar]
-            if pos in done:
-                raise RuntimeError(f"Collision of variables: {dvars}")
-            ops[pos] = op
-            done.add(pos)
+            qubit, op = self._dvar_to_op[dvar]
+            if qubit in done_qubits:
+                raise RuntimeError(f"Collision of variables: {dvars}.")
+            ops[qubit] = op
+            done_qubits.add(qubit)
         return reduce(lambda x, y: x ^ y, ops)
 
     @staticmethod

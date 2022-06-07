@@ -12,8 +12,9 @@
 
 """Quantum Random Access Optimizer."""
 
-from typing import Union, List, Tuple, Optional
 import time
+
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -23,7 +24,6 @@ from qiskit.algorithms import (
     MinimumEigensolverResult,
     NumPyMinimumEigensolver,
 )
-
 from qiskit_optimization.algorithms import (
     OptimizationAlgorithm,
     OptimizationResult,
@@ -33,7 +33,7 @@ from qiskit_optimization.algorithms import (
 from qiskit_optimization.problems import QuadraticProgram, Variable
 
 from .encoding import QuantumRandomAccessEncoding
-from .rounding_common import RoundingScheme, RoundingContext, RoundingResult
+from .rounding_common import RoundingContext, RoundingResult, RoundingScheme
 from .semideterministic_rounding import SemideterministicRounding
 
 

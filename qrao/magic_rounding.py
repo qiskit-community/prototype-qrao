@@ -12,27 +12,26 @@
 
 """Magic bases rounding"""
 
-from typing import List, Dict, Tuple, Optional
 import numbers
 import time
 import warnings
 
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 
 from qiskit import QuantumCircuit
-from qiskit.providers import Backend
 from qiskit.opflow import PrimitiveOp
+from qiskit.providers import Backend
 from qiskit.utils import QuantumInstance
 
-from qiskit.circuit.library import IGate
 from .encoding import change_to_n1p_qrac_basis
 from .rounding_common import (
-    RoundingSolutionSample,
-    RoundingScheme,
     RoundingContext,
     RoundingResult,
+    RoundingScheme,
+    RoundingSolutionSample,
 )
-
 
 _invalid_backend_names = [
     "aer_simulator_unitary",

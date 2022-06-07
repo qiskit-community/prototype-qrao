@@ -27,22 +27,20 @@ Quantum Random Access Optimization.
     utils
 """
 
-from importlib_metadata import version as metadata_version, PackageNotFoundError
+from importlib_metadata import PackageNotFoundError
+from importlib_metadata import version as metadata_version
 
 from .encoding import QuantumRandomAccessEncoding
-
-from .rounding_common import RoundingScheme, RoundingContext, RoundingResult
+from .magic_rounding import MagicRounding, MagicRoundingResult
+from .quantum_random_access_optimizer import (
+    QuantumRandomAccessOptimizationResult,
+    QuantumRandomAccessOptimizer,
+)
+from .rounding_common import RoundingContext, RoundingResult, RoundingScheme
 from .semideterministic_rounding import (
     SemideterministicRounding,
     SemideterministicRoundingResult,
 )
-from .magic_rounding import MagicRounding, MagicRoundingResult
-
-from .quantum_random_access_optimizer import (
-    QuantumRandomAccessOptimizer,
-    QuantumRandomAccessOptimizationResult,
-)
-
 
 try:
     __version__ = metadata_version("prototype_template")

@@ -48,6 +48,7 @@ from qiskit.opflow import (
 )
 from qiskit_optimization.problems.quadratic_program import QuadraticProgram
 
+
 # TODO: this should not be here
 def _ceildiv(n: int, d: int) -> int:
     """Perform ceiling division in integer arithmetic

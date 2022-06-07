@@ -17,10 +17,10 @@ from typing import List, Optional
 import numpy as np
 
 from .rounding_common import (
-    RoundingSolutionSample,
-    RoundingScheme,
     RoundingContext,
     RoundingResult,
+    RoundingScheme,
+    RoundingSolutionSample,
 )
 
 

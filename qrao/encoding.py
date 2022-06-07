@@ -149,6 +149,10 @@ def qrac_state_prep_multiqubit(
     )
     ordered_bits = []
     for qubit_dvars in dvars_from_qubit:
+        if len(qubit_dvars) < 1:
+            raise ValueError(
+                "Each qubit must have at least one decision variable assigned to it."
+            )
         if len(qubit_dvars) > max_dvars_per_qubit:
             raise ValueError(
                 "Each qubit is expected to be associated with at most "

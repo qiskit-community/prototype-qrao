@@ -33,7 +33,7 @@ from qrao import (
     RoundingContext,
     MagicRounding,
 )
-from qrao.encoding import get_state_from_dvar_values, q2vars_from_var2op
+from qrao.encoding import get_dvars_encoding_state, q2vars_from_var2op
 
 # pylint: disable=protected-access
 
@@ -91,7 +91,7 @@ class TestMagicRounding(unittest.TestCase):
             for m0 in range(2):
                 for m1 in range(2):
                     for m2 in range(2):
-                        qrac_gate_circ = get_state_from_dvar_values(
+                        qrac_gate_circ = get_dvars_encoding_state(
                             m0, m1, m2
                         ).to_circuit()
                         magic_basis = 2 * (m1 ^ m2) + (m0 ^ m2)
@@ -109,7 +109,7 @@ class TestMagicRounding(unittest.TestCase):
             for m0 in range(2):
                 for m1 in range(2):
                     for m2 in range(2):
-                        qrac_gate_circ = get_state_from_dvar_values(
+                        qrac_gate_circ = get_dvars_encoding_state(
                             m0, m1, m2
                         ).to_circuit()
                         sv = StateFn(qrac_gate_circ).eval().primitive
@@ -135,7 +135,7 @@ class TestMagicRounding(unittest.TestCase):
         for m0 in range(2):
             for m1 in range(2):
                 for m2 in range(2):
-                    qrac_state = get_state_from_dvar_values(m0, m1, m2).to_circuit()
+                    qrac_state = get_dvars_encoding_state(m0, m1, m2).to_circuit()
                     bases = [[2 * (m1 ^ m2) + (m0 ^ m2)]]
                     basis_counts = magic._evaluate_magic_bases(
                         qrac_state,

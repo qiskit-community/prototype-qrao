@@ -101,8 +101,8 @@ def change_to_n1p_qrac_basis(num_dvars, basis) -> QuantumCircuit:
     return basis_change_qc
 
 
-def get_state_from_dvar_values(*dvar_values: int) -> CircuitStateFn:
-    """Prepare a single-qubit QRAC state from a list of decision variables.
+def get_dvars_encoding_state(*dvar_values: int) -> CircuitStateFn:
+    """Prepare a single-qubit QRAC state from a list of decision variable values.
 
       This function accepts 1, 2, or 3 decision variables, in which case it
       generates a 1-QRAC, 2-QRAC, or 3-QRAC, respectively.
@@ -124,8 +124,8 @@ def get_state_from_dvar_values(*dvar_values: int) -> CircuitStateFn:
     if not all(dvar_value in (0, 1) for dvar_value in dvar_values):
         raise ValueError("Each decision variable must have value 0 or 1.")
 
-    even_parity = sum(dvar_values) % 2
-    even_count = num_dvars % 2
+    has_even_parity = sum(dvar_values) % 2
+    has_even_count = num_dvars % 2
 
     basis = sum(
         [
@@ -133,13 +133,13 @@ def get_state_from_dvar_values(*dvar_values: int) -> CircuitStateFn:
             for i in range(num_dvars - 1)
         ]
     )
-    state = One if (even_parity if even_count else dvar_values[0]) else Zero
+    state = One if (has_even_parity if has_even_count else dvar_values[0]) else Zero
     return (
         CircuitOp(change_to_n1p_qrac_basis(num_dvars, basis)) @ state
     ).to_circuit_op()
 
 
-def qrac_state_prep_multiqubit(
+def get_problem_encoding_state(
     dvar_values: Union[Dict[int, int], List[int]],
     dvars_from_qubit: List[List[int]],
     max_dvars_per_qubit: int,
@@ -176,7 +176,7 @@ def qrac_state_prep_multiqubit(
         ordered_bits.append(qi_bits)
     if remaining_dvars:
         raise ValueError(f"Not all dvars were included in q2vars: {remaining_dvars}")
-    qracs = [get_state_from_dvar_values(*qi_bits) for qi_bits in ordered_bits]
+    qracs = [get_dvars_encoding_state(*qi_bits) for qi_bits in ordered_bits]
     logical = reduce(lambda x, y: x ^ y, qracs)
     return logical
 
@@ -196,13 +196,13 @@ class QuantumRandomAccessEncoding:
     problem).
 
     Args:
-        max_vars_per_qubit: maximum possible compression ratio.
+        max_dvars_per_qubit: maximum possible compression ratio.
             Supported values are 1, 2, or 3.
 
     """
 
     # This defines the convention of the Pauli operators (and their ordering)
-    # for each encoding.
+    # for each encoding scheme.
     NUM_DVARS_TO_OPS = {
         1: (Z,),  # (1,1,1) QRAC
         2: (X, Z),  # (2,1,p) QRAC, p ≈ 0.85
@@ -214,11 +214,13 @@ class QuantumRandomAccessEncoding:
             raise ValueError("max_dvars_per_qubit must be 1, 2, or 3")
         self._max_dvars_per_qubit = max_dvars_per_qubit
 
-        self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
-        self._offset: Optional[float] = None
         self._problem: Optional[QuadraticProgram] = None
+        self._offset: Optional[float] = None
+
         self._dvar_to_op: Dict[int, Tuple[int, PrimitiveOp]] = {}
         self._qubit_to_dvars: List[List[int]] = []
+        self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
+
         self._frozen = False
 
     @property
@@ -286,7 +288,6 @@ class QuantumRandomAccessEncoding:
         # additional qubit (see final line), even if aggregating them into a
         # single call would have resulted in fewer qubits.
 
-        # Validate state and provided dvars.
         self.ensure_thawed()
         if self._qubit_op is not None:
             raise RuntimeError(
@@ -304,6 +305,8 @@ class QuantumRandomAccessEncoding:
                     "Added decision variables cannot collide with existing ones"
                 )
 
+        # Encoding instance and provided decision variables are valid.
+        # Proceed with assigning a qubit and an operator to each decision variable.
         old_num_qubits = len(self.qubit_to_dvars)
         num_new_qubits = _ceildiv(len(dvars), self.max_dvars_per_qubit)
 
@@ -328,14 +331,17 @@ class QuantumRandomAccessEncoding:
 
     def _add_term(self, w: float, *dvars: int) -> None:
         self.ensure_thawed()
+
         # Eq. (31) in https://arxiv.org/abs/2111.03167v2 assumes a weight-2
         # Pauli operator.  To generalize, we replace the `d` in that equation
         # with `d_prime`, defined as follows:
         d_prime = np.sqrt(
             np.prod([len(self.qubit_to_dvars[self.dvar_to_op[x][0]]) for x in dvars])
         )
+
         op = w * d_prime * self.term_to_op(*dvars)
-        # We perform the following short-circuit *after* calling term2op so at
+
+        # We perform the following short-circuit *after* calling term_to_op so at
         # least we have confirmed that the user provided a valid variables list.
         if w == 0.0:
             return
@@ -344,13 +350,13 @@ class QuantumRandomAccessEncoding:
         else:
             self._qubit_op += op
 
-    def term_to_op(self, *variables: int) -> PauliOp:
+    def term_to_op(self, *dvars: int) -> PauliOp:
         ops = [I] * self.num_qubits
         done = set()
-        for x in variables:
-            pos, op = self._dvar_to_op[x]
+        for dvar in dvars:
+            pos, op = self._dvar_to_op[dvar]
             if pos in done:
-                raise RuntimeError(f"Collision of variables: {variables}")
+                raise RuntimeError(f"Collision of variables: {dvars}")
             ops[pos] = op
             done.add(pos)
         return reduce(lambda x, y: x ^ y, ops)
@@ -359,13 +365,16 @@ class QuantumRandomAccessEncoding:
     def _find_variable_partition(quad: np.ndarray) -> Dict[int, List[int]]:
         num_nodes = quad.shape[0]
         assert quad.shape == (num_nodes, num_nodes)
+
         graph = rx.PyGraph()
         graph.add_nodes_from(range(num_nodes))
         graph.add_edges_from_no_data(list(zip(*np.where(quad != 0))))
+
         node_to_color = rx.graph_greedy_color(graph)
         color_to_node: Dict[int, List[int]] = {}
         for node, color in sorted(node_to_color.items()):
             color_to_node.setdefault(color, []).append(node)
+
         return color_to_node
 
     def encode(self, problem: QuadraticProgram) -> None:
@@ -375,7 +384,7 @@ class QuantumRandomAccessEncoding:
             (n,1,p) Quantum Random Access Code. This is done in such a way that the
             given problem's objective function commutes with the encoding.
 
-        After being called, the object will have the following attributes:
+            After being called, the object will have the following attributes:
             qubit_op: The qubit operator encoding the input QuadraticProgram.
             offset: The constant value in the encoded Hamiltonian.
             problem: The ``problem`` used for encoding.
@@ -394,7 +403,6 @@ class QuantumRandomAccessEncoding:
             raise RuntimeError(
                 "Must call encode() on an Encoding that has not been used already"
             )
-
         # If the given problem has variables that are not binary, raise an error.
         if problem.get_num_vars() > problem.get_num_binary_vars():
             raise RuntimeError(
@@ -404,7 +412,6 @@ class QuantumRandomAccessEncoding:
                 "If the problem contains continuous variables, `qrao` "
                 "cannot handle it."
             )
-
         # If constraints exist on the given problem, raise an error.
         if problem.linear_constraints or problem.quadratic_constraints:
             raise RuntimeError(
@@ -413,7 +420,8 @@ class QuantumRandomAccessEncoding:
                 "constraints to penalty terms of the objective function."
             )
 
-        # Generate the Hamiltonian from the problem
+        # Encoding instance state and problem are valid. Proceed with encoding.
+        self._problem = problem
         num_dvars = problem.get_num_vars()
 
         # Extract a sign corresponding to the kind of optimization problem:
@@ -423,6 +431,7 @@ class QuantumRandomAccessEncoding:
 
         # Extract the constant term from the problem objective function.
         offset = problem.objective.constant * sense
+        self._offset = offset
 
         # Extract the linear terms from the problem objective function.
         linear_terms = np.zeros(num_dvars)
@@ -463,12 +472,14 @@ class QuantumRandomAccessEncoding:
             range(num_dvars)
         )
 
+        # Assign each decision variable a qubit and an operator in the circuit
+        # encoding the problem.
         for _, dvar in sorted(dvars_partition.items()):
             self._add_dvars(sorted(dvar))
 
-        # Generate a Hamiltonian encoding the problem from the decision variable
-        # partition and the constant, linear, and qudratic terms of the objective
-        # function.
+        # Add terms to a Hamiltonian encoding the problem from the decision
+        # variable partition and the constant, linear, and qudratic terms of the
+        # objective function.
         for i in range(num_dvars):
             linear_term = linear_terms[i]
             if linear_term != 0:
@@ -478,9 +489,6 @@ class QuantumRandomAccessEncoding:
                 quadratic_term = quadratic_terms[i, j]
                 if quadratic_term != 0:
                     self._add_term(quadratic_term, i, j)
-
-        self._offset = offset
-        self._problem = problem
 
         # This is technically optional and can wait until the optimizer is
         # constructed, but there's really no reason not to freeze immediately.
@@ -510,8 +518,8 @@ class QuantumRandomAccessEncoding:
         if self._frozen:
             raise RuntimeError("Cannot modify an encoding that has been frozen")
 
-    def state_prep(self, dvars: Union[Dict[int, int], List[int]]):
-        return qrac_state_prep_multiqubit(
+    def get_state(self, dvars: Union[Dict[int, int], List[int]]):
+        return get_problem_encoding_state(
             dvars, self.qubit_to_dvars, self.max_dvars_per_qubit
         )
 
@@ -539,7 +547,7 @@ class EncodingCommutationVerifier:
         encoding = self._encoding
         str_dvars = ("{0:0" + str(encoding.num_dvars) + "b}").format(i)
         dvars = [int(b) for b in str_dvars]
-        encoded_bitstr = encoding.state_prep(dvars)
+        encoded_bitstr = encoding.get_state(dvars)
 
         # Offset accounts for the value of the encoded Hamiltonian's
         # identity coefficient. This term need not be evaluated directly as

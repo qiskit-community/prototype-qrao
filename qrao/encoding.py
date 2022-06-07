@@ -49,7 +49,6 @@ from qiskit.opflow import (
 from qiskit_optimization.problems.quadratic_program import QuadraticProgram
 
 
-# TODO: this should not be here
 def _ceildiv(n: int, d: int) -> int:
     """Perform ceiling division in integer arithmetic
 
@@ -323,8 +322,6 @@ class QuantumRandomAccessEncoding:
                     "Added decision variables cannot collide with existing ones"
                 )
 
-        # Encoding instance and provided decision variables are valid.
-        # Proceed with assigning a qubit and an operator to each decision variable.
         old_num_qubits = len(self.qubit_to_dvars)
         num_new_qubits = _ceildiv(len(dvars), self.max_dvars_per_qubit)
 
@@ -438,7 +435,6 @@ class QuantumRandomAccessEncoding:
                 "constraints to penalty terms of the objective function."
             )
 
-        # Encoding instance state and problem are valid. Proceed with encoding.
         self._problem = problem
         num_dvars = problem.get_num_vars()
 

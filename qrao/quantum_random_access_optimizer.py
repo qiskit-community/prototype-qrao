@@ -55,13 +55,20 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
     ) -> None:
         """
         Args:
+
             x: the optimal value found by ``MinimumEigensolver``.
+
             fval: the optimal function value.
+
             variables: the list of variables of the optimization problem.
+
             status: the termination status of the optimization algorithm.
+
             min_eigen_solver_result: the result obtained from the underlying algorithm.
+
             samples: the x values of the QUBO, the objective function value of the QUBO,
-                and the probability, and the status of sampling.
+                     and the probability, and the status of sampling.
+                     
         """
         super().__init__(
             x=x,

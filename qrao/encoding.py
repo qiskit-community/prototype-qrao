@@ -74,6 +74,7 @@ def change_to_n1p_qrac_basis(num_dvars, basis) -> QuantumCircuit:
 
     Returns:
         The ``QuantumCircuit`` implementing the change of basis.
+
     """
 
     if num_dvars not in (1, 2, 3):
@@ -112,6 +113,7 @@ def get_dvars_encoding_state(*dvar_values: int) -> CircuitStateFn:
 
     Returns:
         The single-qubit QRAC circuit state function.
+
     """
     num_dvars = len(dvar_values)
 
@@ -153,6 +155,7 @@ def get_problem_encoding_state(
 
     Returns:
         The composite circuit state function encoding the specified problem.
+
     """
     remaining_dvars = set(
         dvar_values if isinstance(dvar_values, dict) else range(len(dvar_values))

@@ -104,8 +104,8 @@ def change_to_n1p_qrac_basis(num_dvars, basis) -> QuantumCircuit:
 def get_dvars_encoding_state(*dvar_values: int) -> CircuitStateFn:
     """Prepare a single-qubit QRAC state from a list of decision variable values.
 
-      This function accepts 1, 2, or 3 decision variables, in which case it
-      generates a 1-QRAC, 2-QRAC, or 3-QRAC, respectively.
+        This function accepts 1, 2, or 3 decision variables, in which case it
+        generates a 1-QRAC, 2-QRAC, or 3-QRAC, respectively.
 
     Args:
         dvars: The values of the decision variables to encode. Each decision
@@ -174,7 +174,9 @@ def get_problem_encoding_state(
                 ) from None
         qubits_dvar_values.append(qubit_dvar_values)
     if remaining_dvars:
-        raise ValueError(f"Not all dvars were included in q2vars: {remaining_dvars}")
+        raise ValueError(
+            f"Not all dvars were included in dvars_from_qubit: {remaining_dvars}"
+        )
     dvars_encoding_states = [
         get_dvars_encoding_state(*qubit_dvar_values)
         for qubit_dvar_values in qubits_dvar_values
@@ -183,13 +185,15 @@ def get_problem_encoding_state(
     return problem_encoding_state
 
 
-def q2vars_from_var2op(var2op: Dict[int, Tuple[int, PrimitiveOp]]) -> List[List[int]]:
-    """Calculate q2vars given var2op"""
-    num_qubits = max(qubit_index for qubit_index, _ in var2op.values()) + 1
-    q2vars: List[List[int]] = [[] for i in range(num_qubits)]
-    for var, (q, _) in var2op.items():
-        q2vars[q].append(var)
-    return q2vars
+def get_qubit_from_op_assignment(
+    dvar_to_op: Dict[int, Tuple[int, PrimitiveOp]]
+) -> List[List[int]]:
+    """Get qubit assignments from op assignment for decision variables."""
+    num_qubits = max(qubit_index for qubit_index, _ in dvar_to_op.values()) + 1
+    qubit_to_dvars: List[List[int]] = [[] for i in range(num_qubits)]
+    for dvar, (qubit, _) in dvar_to_op.items():
+        qubit_to_dvars[qubit].append(dvar)
+    return qubit_to_dvars
 
 
 class QuantumRandomAccessEncoding:

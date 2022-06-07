@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit.opflow import PrimitiveOp
 
-from .encoding import q2vars_from_var2op
+from .encoding import get_qubit_from_op_assignment
 
 
 @dataclass
@@ -43,7 +43,7 @@ class RoundingContext:
         circuit=None
     ):
         self.var2op = var2op
-        self.q2vars = q2vars_from_var2op(var2op) if q2vars is None else q2vars
+        self.q2vars = get_qubit_from_op_assignment(var2op) if q2vars is None else q2vars
 
         self.trace_values = trace_values  # TODO: rename me
         self.circuit = circuit  # TODO: rename me

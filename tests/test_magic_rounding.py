@@ -33,7 +33,7 @@ from qrao import (
     RoundingContext,
     MagicRounding,
 )
-from qrao.encoding import get_dvars_encoding_state, q2vars_from_var2op
+from qrao.encoding import get_dvars_encoding_state, get_qubit_from_op_assignment
 
 # pylint: disable=protected-access
 
@@ -162,7 +162,10 @@ class TestMagicRounding(unittest.TestCase):
                     bases = [[b0, b1]]
                     basis_counts = [{"{:02b}".format(outcome): 1}]
                     dv_counts = compute_dv_counts(
-                        basis_counts, bases, var2op, q2vars_from_var2op(var2op)
+                        basis_counts,
+                        bases,
+                        var2op,
+                        get_qubit_from_op_assignment(var2op),
                     )
                     solns.append(list(dv_counts.keys())[0])
         ref = [
@@ -250,7 +253,7 @@ class TestMagicRounding(unittest.TestCase):
         )
         ops = [X, Y, Z]
         var2op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
-        q2vars = q2vars_from_var2op(var2op)
+        q2vars = get_qubit_from_op_assignment(var2op)
         magic = MagicRounding(quantum_instance=rounding_qi, basis_sampling="weighted")
         sample_bases_weighted = magic._sample_bases_weighted
 
@@ -283,7 +286,7 @@ class TestMagicRounding(unittest.TestCase):
         num_qubits = 1
         ops = [X, Y, Z]
         var2op = {i: (i // 3, ops[i % 3]) for i in range(num_nodes)}
-        q2vars = q2vars_from_var2op(var2op)
+        q2vars = get_qubit_from_op_assignment(var2op)
         shots = 1000  # set high enough to "always" have four distinct results
         qi = QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=shots)
         magic = MagicRounding(

@@ -113,7 +113,6 @@ def get_dvars_encoding_state(*dvar_values: int) -> CircuitStateFn:
 
     Returns:
         The single-qubit QRAC circuit state function.
-
     """
     num_dvars = len(dvar_values)
 
@@ -147,7 +146,7 @@ def get_problem_encoding_state(
     remaining_dvars = set(
         dvar_values if isinstance(dvar_values, dict) else range(len(dvar_values))
     )
-    ordered_bits = []
+    qubits_dvar_values = []
     for qubit_dvars in dvars_from_qubit:
         if len(qubit_dvars) < 1:
             raise ValueError(
@@ -156,13 +155,13 @@ def get_problem_encoding_state(
         if len(qubit_dvars) > max_dvars_per_qubit:
             raise ValueError(
                 "Each qubit is expected to be associated with at most "
-                f"`max_vars_per_qubit` ({max_dvars_per_qubit}) variables, "
+                f"`max_dvars_per_qubit` ({max_dvars_per_qubit}) variables, "
                 f"not {len(qubit_dvars)} variables."
             )
-        qi_bits: List[int] = []
+        qubit_dvar_values: List[int] = []
         for dvar in qubit_dvars:
             try:
-                qi_bits.append(dvar_values[dvar])
+                qubit_dvar_values.append(dvar_values[dvar])
             except (KeyError, IndexError):
                 raise ValueError(
                     f"Decision variable not included in dvars: {dvar}"
@@ -173,12 +172,15 @@ def get_problem_encoding_state(
                 raise ValueError(
                     f"Unused decision variable(s) in dvars: {remaining_dvars}"
                 ) from None
-        ordered_bits.append(qi_bits)
+        qubits_dvar_values.append(qubit_dvar_values)
     if remaining_dvars:
         raise ValueError(f"Not all dvars were included in q2vars: {remaining_dvars}")
-    qracs = [get_dvars_encoding_state(*qi_bits) for qi_bits in ordered_bits]
-    logical = reduce(lambda x, y: x ^ y, qracs)
-    return logical
+    dvars_encoding_states = [
+        get_dvars_encoding_state(*qubit_dvar_values)
+        for qubit_dvar_values in qubits_dvar_values
+    ]
+    problem_encoding_state = reduce(lambda x, y: x ^ y, dvars_encoding_states)
+    return problem_encoding_state
 
 
 def q2vars_from_var2op(var2op: Dict[int, Tuple[int, PrimitiveOp]]) -> List[List[int]]:
@@ -516,7 +518,7 @@ class QuantumRandomAccessEncoding:
     def ensure_thawed(self) -> None:
         """Raise a ``RuntimeError`` if the object is frozen and thus cannot be modified."""
         if self._frozen:
-            raise RuntimeError("Cannot modify an encoding that has been frozen")
+            raise RuntimeError("Cannot modify an encoding that has been frozen.")
 
     def get_state(self, dvars: Union[Dict[int, int], List[int]]):
         return get_problem_encoding_state(

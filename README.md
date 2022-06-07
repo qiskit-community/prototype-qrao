@@ -19,21 +19,21 @@
 
 ### Table of Contents
 
-* [About This Project](#about-this-project)
-* [Installation](#installation)
-* [Documentation](#documentation)
+- [About This Project](#about-this-project)
+- [Installation](#installation)
+- [Documentation](#documentation)
   - [Tutorials](docs/tutorials/)
   - [How-Tos](docs/how_tos/)
   - [Background](docs/background/)
-* [Important Usage Notes](#important-usage-notes)
-* [How to Give Feedback](#how-to-give-feedback)
-* [Contribution Guidelines](#contribution-guidelines)
-* [Acknowledgements](#acknowledgements)
-* [About Prototypes](#about-prototypes)
-* [References](#references)
-* [License](#license)
+- [Important Usage Notes](#important-usage-notes)
+- [How to Give Feedback](#how-to-give-feedback)
+- [Contribution Guidelines](#contribution-guidelines)
+- [Acknowledgements](#acknowledgements)
+- [About Prototypes](#about-prototypes)
+- [References](#references)
+- [License](#license)
 
-----------------------------------------------------------------------------------------------------
+---
 
 ### About This Project
 
@@ -43,15 +43,15 @@ The figure at the top of this page illustrates a simple example of encoding a de
 
 This project evolved out of research at IBM Quantum on [Approximate Solutions of Combinatorial Problems via Quantum Relaxations](https://arxiv.org/abs/2111.03167).
 
-***Problem Statement***
+**_Problem Statement_**
 
 Given a quadratic unconstrained binary optimization (QUBO) problem represented by a relaxation to a local quantum Hamiltonian, find an approximate solution by rounding the energy associated with a candidate ground state. This Hamiltonian is constructed using quantum random access codes for memory compression, which allows each qubit to encode more than one binary variable.
 
-***QRAO Flowchart***
+**_QRAO Flowchart_**
 
 Quantum random access optimization is composed of two main steps as shown in the flowchart below.
 
-1. The input problem is encoded into a quantum Hamiltonian using the `QuantumRandomAccessEncoding` class. The maximum number of original classical binary variables encoded into each qubit is specified by `max_vars_per_qubit`.
+1. The input problem is encoded into a quantum Hamiltonian using the `QuantumRandomAccessEncoding` class. The maximum number of original classical binary variables encoded into each qubit is specified by `max_dvars_per_qubit`.
 2. The encoded problem is solved with the `QuantumRandomAccessOptimizer`, which uses a minimum eigensolver on the quantum Hamiltonian, rounds the solution, and returns the processed results.
 
 <br />
@@ -60,11 +60,11 @@ Quantum random access optimization is composed of two main steps as shown in the
   <img src="docs/images/qrao_flowchart.svg">
 </p>
 
-----------------------------------------------------------------------------------------------------
+---
 
 ### Installation
 
-Python 3.6 or higher is required.  Full installation instructions are provided in [`INSTALL.md`](INSTALL.md), but here is a quick summary:
+Python 3.6 or higher is required. Full installation instructions are provided in [`INSTALL.md`](INSTALL.md), but here is a quick summary:
 
 ```sh
 $ git clone https://github.com/qiskit-community/prototype-qrao.git
@@ -75,17 +75,17 @@ $ pip install tox notebook -e .
 $ jupyter notebook
 ```
 
-----------------------------------------------------------------------------------------------------
+---
 
 ### Documentation
 
-Documentation is stored in the [`docs/`](docs/) directory.  It is organized according to the [Diátaxis framework](https://diataxis.fr/):
+Documentation is stored in the [`docs/`](docs/) directory. It is organized according to the [Diátaxis framework](https://diataxis.fr/):
 
 - [Tutorials](docs/tutorials/): longer examples of end-to-end usage
 - [How-to guides](docs/how_tos/): targeted answers to common questions
 - [Background material](docs/background/): in-depth exploration of theoretical concepts
 
-----------------------------------------------------------------------------------------------------
+---
 
 ### Important Usage Notes
 
@@ -93,10 +93,12 @@ The current version of this module has some important usage notes and limitation
 
 #### Encoding Limitations
 
-The [Magic Rounding scheme](https://github.com/qiskit-community/prototype-qrao/blob/main/qrao/magic_rounding.py) is currently only compatible with the (3,1,p) QRAC for encoding classical binary variables onto qubits. If using this rounding scheme, be sure to set `max_vars_per_qubit=3` when instantiating the encoding:
+The [Magic Rounding scheme](https://github.com/qiskit-community/prototype-qrao/blob/main/qrao/magic_rounding.py) is currently only compatible with the (3,1,p) QRAC for encoding classical binary variables onto qubits. If using this rounding scheme, be sure to set `max_dvars_per_qubit=3` when instantiating the encoding:
+
 ```
-encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=3)
+encoding = QuantumRandomAccessEncoding(max_dvars_per_qubit=3)
 ```
+
 Refer to the [tutorial on rounding schemes](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/tutorials/02_advanced_usage.ipynb) for example usage.
 
 We plan to make Magic Rounding compatible with additional encoding options in the future.
@@ -111,24 +113,23 @@ Check out the documentation for `qiskit-optimization` to see [how to construct a
 
 If you would like to use a statevector simulation for Magic Rounding, we advise using the new `AerSimulator` ([source](https://github.com/Qiskit/qiskit-aer/blob/main/qiskit/providers/aer/backends/aer_simulator.py)) with the `"statevector"` method and _not_ the ([soon-to-be-deprecated](https://github.com/Qiskit/qiskit-aer/blob/73b29ad75a0d206c68aff42d4d63adf3a42b61b5/qiskit/providers/aer/backends/statevector_simulator.py#L178)) `StatevectorSimulator`. The latter suffers from a very poor runtime scaling when used with the Magic Rounding scheme, as it effectively brute-forces all possible solutions.
 
-----------------------------------------------------------------------------------------------------
+---
 
 ### How to Give Feedback
 
 We encourage your feedback! You can share your thoughts with us by:
+
 - [Opening an issue](https://github.com/qiskit-community/prototype-qrao/issues) in the repository
 - [Starting a conversation on GitHub Discussions](https://github.com/qiskit-community/prototype-qrao/discussions)
 - [Filling out our survey](https://airtable.com/shrWnomSunVJTz6PV)
 
-
-----------------------------------------------------------------------------------------------------
+---
 
 ### Contribution Guidelines
 
 For information on how to contribute to this project, please take a look at our [contribution guidelines](CONTRIBUTING.md).
 
-
-----------------------------------------------------------------------------------------------------
+---
 
 ### Acknowledgements
 
@@ -136,8 +137,7 @@ This prototype is based on the research described in [[1]](#references).
 
 The initial codebase was written by Takashi Imamichi, Toshinari Itoko, and Bryce Fuller.
 
-
-----------------------------------------------------------------------------------------------------
+---
 
 ### About Prototypes
 
@@ -145,15 +145,14 @@ Prototypes is a collaboration between developers and researchers that will give 
 
 Check out our [blog post](https://medium.com/qiskit/try-out-the-latest-advances-in-quantum-computing-with-ibm-quantum-prototypes-11f51124cb61) for more information!
 
-
-----------------------------------------------------------------------------------------------------
+---
 
 ### References
 
 [1] Bryce Fuller, Charles Hadfield, Jennifer R. Glick, Takashi Imamichi, Toshinari Itoko, Richard J. Thompson, Yang Jiao, Marna M. Kagele, Adriana W. Blom-Schieber, Rudy Raymond, and Antonio Mezzacapo. Approximate Solutions of Combinatorial Problems via Quantum Relaxations. [arXiv:2111.03167](https://arxiv.org/abs/2111.03167).
 
-
-----------------------------------------------------------------------------------------------------
+---
 
 ### License
+
 [Apache License 2.0](LICENSE.txt)

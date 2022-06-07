@@ -515,7 +515,7 @@
            id="g1448"
            transform="matrix(0.24,0,0,0.24,341.3994,-146.4)">
           <g
-             aria-label="QuantumRandomAccessEncoding(max_vars_per_qubit"
+             aria-label="QuantumRandomAccessEncoding(max_dvars_per_qubit"
              transform="matrix(1,0,0,-1,0,3000)"
              id="text1452"
              style="font-weight:bold;font-size:75px;font-family:IBMPlexMono;-inkscape-font-specification:IBMPlexMono-Bold;fill:#0f61fe">
@@ -1828,7 +1828,7 @@
            id="g1626"
            transform="matrix(0.24,0,0,0.24,202.6635,-295.2)">
           <g
-             aria-label="max_vars_per_qubit (1"
+             aria-label="max_dvars_per_qubit (1"
              transform="matrix(1,0,0,-1,0,3000)"
              id="text1630"
              style="font-size:75px;font-family:IBMPlexMono;-inkscape-font-specification:IBMPlexMono;fill:#161616">

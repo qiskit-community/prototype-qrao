@@ -26,8 +26,8 @@ from qrao.encoding import (
     QuantumRandomAccessEncoding,
     EncodingCommutationVerifier,
     qrac_state_prep_multiqubit,
-    state_from_dvar_values,
-    to_n1p_qrac_basis,
+    get_state_from_dvar_values,
+    change_to_n1p_qrac_basis,
 )
 
 # pylint: disable=protected-access
@@ -42,37 +42,37 @@ def test_31p_qrac_encoding():
     encoding = QuantumRandomAccessEncoding(3)
     assert encoding.num_qubits == 0
     assert not encoding.frozen
-    encoding._add_variables([])
+    encoding._add_dvars([])
     assert encoding.num_qubits == 0
     with pytest.raises(ValueError):
         # Can't add the same variable twice at the same time
-        encoding._add_variables([9, 9])
-    encoding._add_variables([7, 11, 13, 17])
+        encoding._add_dvars([9, 9])
+    encoding._add_dvars([7, 11, 13, 17])
     assert encoding.num_qubits == 2
     with pytest.raises(ValueError):
         # Variable has already been added
-        encoding._add_variables([7])
+        encoding._add_dvars([7])
     assert encoding.num_qubits == 2
-    encoding._add_variables([23, 27])
+    encoding._add_dvars([23, 27])
     assert encoding.num_qubits == 3
-    assert encoding.q2vars == [[7, 11, 13], [17], [23, 27]]
-    var2q = {v: q for v, (q, _) in encoding.var2op.items()}
+    assert encoding.qubit_to_dvars == [[7, 11, 13], [17], [23, 27]]
+    var2q = {v: q for v, (q, _) in encoding.dvar_to_op.items()}
     assert var2q == {7: 0, 11: 0, 13: 0, 17: 1, 23: 2, 27: 2}
 
-    m = {v: np.random.randint(2) for v in encoding.var2op}
+    m = {v: np.random.randint(2) for v in encoding.dvar_to_op}
     encoding.state_prep(m)
     with pytest.raises(ValueError):
         encoding.state_prep({**m, 5: 0})
     with pytest.raises(ValueError):
         encoding.state_prep({**m, 7: 2})
-    q2vars_modified = deepcopy(encoding.q2vars)
+    q2vars_modified = deepcopy(encoding.qubit_to_dvars)
     q2vars_modified[0][2] = 17  # add a duplicate (see the assertion above)
     with pytest.raises(ValueError):
-        qrac_state_prep_multiqubit(m, q2vars_modified, encoding.max_vars_per_qubit)
-    q2vars_modified = deepcopy(encoding.q2vars)
+        qrac_state_prep_multiqubit(m, q2vars_modified, encoding.max_dvars_per_qubit)
+    q2vars_modified = deepcopy(encoding.qubit_to_dvars)
     q2vars_modified[0].append(15)  # attempt to have four variables on a qubit
     with pytest.raises(ValueError):
-        qrac_state_prep_multiqubit(m, q2vars_modified, encoding.max_vars_per_qubit)
+        qrac_state_prep_multiqubit(m, q2vars_modified, encoding.max_dvars_per_qubit)
     del m[7]
     with pytest.raises(ValueError):
         encoding.state_prep(m)
@@ -89,11 +89,11 @@ def test_31p_qrac_encoding():
 
     with pytest.raises(RuntimeError):
         # Collision of variables (same qubit)
-        encoding.term2op(7, 11)
-    encoding.term2op(7, 17)
+        encoding.term_to_op(7, 11)
+    encoding.term_to_op(7, 17)
 
     with pytest.raises(RuntimeError):
-        encoding._add_variables([17])
+        encoding._add_dvars([17])
 
     encoding.ensure_thawed()
     encoding.freeze()
@@ -103,27 +103,27 @@ def test_31p_qrac_encoding():
 
 def test_21p_qrac_encoding():
     encoding = QuantumRandomAccessEncoding(2)
-    encoding._add_variables([7, 11, 13])
+    encoding._add_dvars([7, 11, 13])
     assert encoding.num_qubits == 2
-    encoding._add_variables([23])
+    encoding._add_dvars([23])
     assert encoding.num_qubits == 3
-    assert encoding.q2vars == [[7, 11], [13], [23]]
-    var2q = {v: q for v, (q, _) in encoding.var2op.items()}
+    assert encoding.qubit_to_dvars == [[7, 11], [13], [23]]
+    var2q = {v: q for v, (q, _) in encoding.dvar_to_op.items()}
     assert var2q == {7: 0, 11: 0, 13: 1, 23: 2}
-    m = {v: np.random.randint(2) for v in encoding.var2op}
+    m = {v: np.random.randint(2) for v in encoding.dvar_to_op}
     encoding.state_prep(m)
 
 
 def test_111_qrac_encoding():
     encoding = QuantumRandomAccessEncoding(1)
-    encoding._add_variables([7, 11, 13])
+    encoding._add_dvars([7, 11, 13])
     assert encoding.num_qubits == 3
-    encoding._add_variables([23])
+    encoding._add_dvars([23])
     assert encoding.num_qubits == 4
-    assert encoding.q2vars == [[7], [11], [13], [23]]
-    var2q = {v: q for v, (q, _) in encoding.var2op.items()}
+    assert encoding.qubit_to_dvars == [[7], [11], [13], [23]]
+    var2q = {v: q for v, (q, _) in encoding.dvar_to_op.items()}
     assert var2q == {7: 0, 11: 1, 13: 2, 23: 3}
-    m = {v: np.random.randint(2) for v in encoding.var2op}
+    m = {v: np.random.randint(2) for v in encoding.dvar_to_op}
     encoding.state_prep(m)
 
 
@@ -208,10 +208,10 @@ def test_sense():
         problem = from_docplex_mp(mod)
         return problem
 
-    max_encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=3)
+    max_encoding = QuantumRandomAccessEncoding(max_dvars_per_qubit=3)
     max_encoding.encode(get_problem(maximize=True))
 
-    min_encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=3)
+    min_encoding = QuantumRandomAccessEncoding(max_dvars_per_qubit=3)
     min_encoding.encode(get_problem(maximize=False))
 
     assert max_encoding.qubit_op == min_encoding.qubit_op
@@ -220,14 +220,14 @@ def test_sense():
 
 def test_qrac_state_prep_1q():
     with pytest.raises(TypeError):
-        state_from_dvar_values(1, 0, 1, 0)
+        get_state_from_dvar_values(1, 0, 1, 0)
 
     for n in (1, 2, 3):
         p = QuantumRandomAccessEncoding(n).minimum_recovery_probability
         for m in itertools.product((0, 1), repeat=n):
-            logical = state_from_dvar_values(*m)
+            logical = get_state_from_dvar_values(*m)
             for i in range(n):
-                op = QuantumRandomAccessEncoding.OPERATORS[n - 1][i]
+                op = QuantumRandomAccessEncoding.NUM_DVARS_TO_OPS[n][i]
                 pauli_tv = (~logical @ op @ logical).eval()
                 tv = (1 - pauli_tv) / 2
                 expected_tv = p if m[i] else 1 - p
@@ -236,9 +236,9 @@ def test_qrac_state_prep_1q():
 
 def test_undefined_basis_rotations():
     with pytest.raises(ValueError):
-        to_n1p_qrac_basis(3, 4)  # each element should be 0, 1, 2, or 3
+        change_to_n1p_qrac_basis(3, 4)  # each element should be 0, 1, 2, or 3
     with pytest.raises(ValueError):
-        to_n1p_qrac_basis(2, 2)  # each element should be 0 or 1
+        change_to_n1p_qrac_basis(2, 2)  # each element should be 0 or 1
 
 
 def test_unassigned_qubit():

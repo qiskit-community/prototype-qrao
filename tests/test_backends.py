@@ -61,7 +61,7 @@ def my_encoding():
     var = [mod.binary_var(name="x" + str(i)) for i in nodes]
     mod.maximize(mod.sum((var[i] + var[j] - 2 * var[i] * var[j]) for i, j in elist))
     problem = from_docplex_mp(mod)
-    encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=3)
+    encoding = QuantumRandomAccessEncoding(max_dvars_per_qubit=3)
     encoding.encode(problem)
     return encoding
 

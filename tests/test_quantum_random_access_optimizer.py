@@ -46,7 +46,7 @@ class TestQuantumRandomAccessOptimizer(TestCase):
     def setUp(self):
         # Load a problem to test out
         self.problem = get_random_maxcut_qp(degree=3, num_nodes=6)
-        self.encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=3)
+        self.encoding = QuantumRandomAccessEncoding(max_dvars_per_qubit=3)
         self.encoding.encode(self.problem)
         self.assertEqual(self.encoding.num_qubits, self.encoding.qubit_op.num_qubits)
         self.ansatz = RealAmplitudes(self.encoding.num_qubits)  # for VQE

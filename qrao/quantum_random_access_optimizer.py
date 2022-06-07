@@ -182,7 +182,9 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         # range is equivalent to `sorted(self.encoding.var2op.keys())`.  See
         # encoding.py for more commentary on this assumption, which always
         # holds when starting from a `QuadraticProgram`.
-        variable_ops = [self.encoding.term2op(i) for i in range(self.encoding.num_vars)]
+        variable_ops = [
+            self.encoding.term_to_op(i) for i in range(self.encoding.num_dvars)
+        ]
 
         # solve relaxed problem
         start_time_relaxed = time.time()
@@ -216,7 +218,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             circuit = None
 
         rounding_context = RoundingContext(
-            self.encoding.var2op,
+            self.encoding.dvar_to_op,
             trace_values=trace_values,
             circuit=circuit,
         )

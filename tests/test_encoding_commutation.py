@@ -25,22 +25,22 @@ from qrao.encoding import QuantumRandomAccessEncoding, EncodingCommutationVerifi
 from qrao.utils import get_random_maxcut_qp
 
 
-def check_problem_commutation(problem: QuadraticProgram, max_vars_per_qubit: int):
-    encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=max_vars_per_qubit)
+def check_problem_commutation(problem: QuadraticProgram, max_dvars_per_qubit: int):
+    encoding = QuantumRandomAccessEncoding(max_dvars_per_qubit=max_dvars_per_qubit)
     encoding.encode(problem)
     verifier = EncodingCommutationVerifier(encoding)
-    assert len(verifier) == 2**encoding.num_vars
+    assert len(verifier) == 2**encoding.num_dvars
     assert all(
         np.isclose(obj_val, encoded_obj_val) for _, obj_val, encoded_obj_val in verifier
     )
 
 
-@pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
+@pytest.mark.parametrize("max_dvars_per_qubit", [1, 2, 3])
 @pytest.mark.parametrize("task", ["minimize", "maximize"])
-def test_one_qubit_qrac(max_vars_per_qubit, task):
+def test_one_qubit_qrac(max_dvars_per_qubit, task):
     """Non-uniform weights, degree 1 terms"""
     mod = Model("maxcut")
-    num_nodes = max_vars_per_qubit
+    num_nodes = max_dvars_per_qubit
     nodes = list(range(num_nodes))
     var = [mod.binary_var(name=f"x{i}") for i in nodes]
     {"minimize": mod.minimize, "maximize": mod.maximize}[task](
@@ -48,12 +48,12 @@ def test_one_qubit_qrac(max_vars_per_qubit, task):
     )
     problem = from_docplex_mp(mod)
 
-    check_problem_commutation(problem, max_vars_per_qubit=max_vars_per_qubit)
+    check_problem_commutation(problem, max_dvars_per_qubit=max_dvars_per_qubit)
 
 
-@pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
+@pytest.mark.parametrize("max_dvars_per_qubit", [1, 2, 3])
 @pytest.mark.parametrize("task", ["minimize", "maximize"])
-def test_uniform_weights_degree_2(max_vars_per_qubit, task):
+def test_uniform_weights_degree_2(max_dvars_per_qubit, task):
     # Note that the variable embedding has some qubits with 1, 2, and 3 qubits
     num_nodes = 6
     elist = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0), (0, 3), (1, 4), (2, 4)]
@@ -73,18 +73,18 @@ def test_uniform_weights_degree_2(max_vars_per_qubit, task):
     )
     problem = from_docplex_mp(mod)
 
-    check_problem_commutation(problem, max_vars_per_qubit=max_vars_per_qubit)
+    check_problem_commutation(problem, max_dvars_per_qubit=max_dvars_per_qubit)
 
 
-@pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
-def test_random_unweighted_maxcut_problem(max_vars_per_qubit):
+@pytest.mark.parametrize("max_dvars_per_qubit", [1, 2, 3])
+def test_random_unweighted_maxcut_problem(max_dvars_per_qubit):
     problem = get_random_maxcut_qp(degree=3, num_nodes=8)
-    check_problem_commutation(problem, max_vars_per_qubit=max_vars_per_qubit)
+    check_problem_commutation(problem, max_dvars_per_qubit=max_dvars_per_qubit)
 
 
-@pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
+@pytest.mark.parametrize("max_dvars_per_qubit", [1, 2, 3])
 @pytest.mark.parametrize("task", ["minimize", "maximize"])
-def test_nonuniform_weights_degree_1_and_2_terms(max_vars_per_qubit, task):
+def test_nonuniform_weights_degree_1_and_2_terms(max_dvars_per_qubit, task):
     num_nodes = 6
     elist = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0), (0, 3), (1, 4), (2, 5)]
     edges = np.zeros((num_nodes, num_nodes))
@@ -103,4 +103,4 @@ def test_nonuniform_weights_degree_1_and_2_terms(max_vars_per_qubit, task):
     {"minimize": mod.minimize, "maximize": mod.maximize}[task](expr)
     problem = from_docplex_mp(mod)
 
-    check_problem_commutation(problem, max_vars_per_qubit=max_vars_per_qubit)
+    check_problem_commutation(problem, max_dvars_per_qubit=max_dvars_per_qubit)

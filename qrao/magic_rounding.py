@@ -25,7 +25,7 @@ from qiskit.opflow import PrimitiveOp
 from qiskit.utils import QuantumInstance
 
 from qiskit.circuit.library import IGate
-from .encoding import to_n1p_qrac_basis
+from .encoding import change_to_n1p_qrac_basis
 from .rounding_common import (
     RoundingSolutionSample,
     RoundingScheme,
@@ -185,16 +185,16 @@ class MagicRounding(RoundingScheme):
         self._quantum_instance = quantum_instance
 
     @staticmethod
-    def _dvar_values_from_bit(n_dvars, basis, bit):
-        dvars = [dvars for dvars in range(2 ** (n_dvars)) if _parity(dvars)][basis]
+    def _dvar_values_from_bit(num_dvars: int, basis: int, bit: int):
+        dvars = [dvars for dvars in range(2 ** (num_dvars)) if _parity(dvars)][basis]
         if bit:
             dvars = ~dvars
-        dvars = _bitfield(dvars, n_dvars)
+        dvars = _bitfield(dvars, num_dvars)
         return dvars
 
     def _dvar_values_from_bits(
         self,
-        bits: str,
+        bits: List[int],
         bases: List[int],
         operator_from_dvar: Dict[int, Tuple[int, PrimitiveOp]],
         dvars_from_qubit: List[List[int]],
@@ -219,7 +219,7 @@ class MagicRounding(RoundingScheme):
             measured_circuit = circuit.copy()
             for (qubit, variables), operator in zip(enumerate(q2vars), basis):
                 measured_circuit.append(
-                    to_n1p_qrac_basis(len(variables), operator).inverse(),
+                    change_to_n1p_qrac_basis(len(variables), operator).inverse(),
                     qargs=[qubit],
                 )
             if measure:
@@ -303,7 +303,9 @@ class MagicRounding(RoundingScheme):
             for bitstr, count in counts.items():
 
                 # For each bit in the observed bitstring...
-                soln = self._dvar_values_from_bits(bitstr, base, var2op, q2vars)
+                soln = self._dvar_values_from_bits(
+                    list(map(int, list(bitstr))), base, var2op, q2vars
+                )
                 soln = "".join([str(int(bit)) for bit in soln])
                 if soln in dv_counts:
                     dv_counts[soln] += count

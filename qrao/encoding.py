@@ -139,7 +139,7 @@ def get_dvars_encoding_state(*dvar_values: int) -> CircuitStateFn:
 
 def get_problem_encoding_state(
     dvar_values: Union[Dict[int, int], List[int]],
-    dvars_from_qubit: List[List[int]],
+    qubit_to_dvars: List[List[int]],
     max_dvars_per_qubit: int,
 ) -> CircuitStateFn:
     """Prepare a composite state of single-qubit QRAC states encoding the specified
@@ -158,7 +158,7 @@ def get_problem_encoding_state(
         dvar_values if isinstance(dvar_values, dict) else range(len(dvar_values))
     )
     qubits_dvar_values = []
-    for qubit_dvars in dvars_from_qubit:
+    for qubit_dvars in qubit_to_dvars:
         if len(qubit_dvars) < 1:
             raise ValueError(
                 "Each qubit must have at least one decision variable assigned to it."
@@ -186,7 +186,7 @@ def get_problem_encoding_state(
         qubits_dvar_values.append(qubit_dvar_values)
     if remaining_dvars:
         raise ValueError(
-            f"Not all dvars were included in dvars_from_qubit: {remaining_dvars}"
+            f"Not all dvars were included in qubit_to_dvars: {remaining_dvars}"
         )
     dvars_encoding_states = [
         get_dvars_encoding_state(*qubit_dvar_values)
@@ -221,9 +221,9 @@ class QuantumRandomAccessEncoding:
     # This defines the convention of the Pauli operators (and their ordering)
     # for each encoding scheme.
     NUM_DVARS_TO_OPS = {
-        1: (Z,),  # (1,1,1) QRAC
-        2: (X, Z),  # (2,1,p) QRAC, p ≈ 0.85
-        3: (X, Y, Z),  # (3,1,p) QRAC, p ≈ 0.79
+        1: [Z],  # (1,1,1) QRAC
+        2: [X, Z],  # (2,1,p) QRAC, p ≈ 0.85
+        3: [X, Y, Z],  # (3,1,p) QRAC, p ≈ 0.79
     }
 
     def __init__(self, max_dvars_per_qubit: int = 3):

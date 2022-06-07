@@ -15,17 +15,15 @@
 import numbers
 import time
 import warnings
-
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-
 from qiskit import QuantumCircuit
 from qiskit.opflow import PrimitiveOp
 from qiskit.providers import Backend
 from qiskit.utils import QuantumInstance
 
-from .encoding import change_to_n1p_qrac_basis
+from .encoding import QuantumRandomAccessEncoding, change_to_n1p_qrac_basis
 from .rounding_common import (
     RoundingContext,
     RoundingResult,
@@ -62,7 +60,7 @@ def _is_original_statevector_simulator(backend: Backend) -> bool:
     return _backend_name(backend) == "statevector_simulator"
 
 
-def _parity(n):
+def _get_parity(n):
     parity = 0
     while n:
         parity = ~parity
@@ -70,7 +68,7 @@ def _parity(n):
     return parity >= 0
 
 
-def _bitfield(n, length):
+def _get_bitfield(n, length):
     return [n >> i & 1 for i in range(length - 1, -1, -1)]
 
 
@@ -110,12 +108,6 @@ class MagicRounding(RoundingScheme):
     This method is described in https://arxiv.org/abs/2111.03167v2.
 
     """
-
-    _OPERATOR_INDICES = {
-        1: {"Z": 0},
-        2: {"X": 0, "Z": 1},
-        3: {"X": 0, "Y": 1, "Z": 2},
-    }
 
     def __init__(
         self,
@@ -185,28 +177,30 @@ class MagicRounding(RoundingScheme):
 
     @staticmethod
     def _dvar_values_from_bit(num_dvars: int, basis: int, bit: int):
-        dvars = [dvars for dvars in range(2 ** (num_dvars)) if _parity(dvars)][basis]
+        dvars = [dvars for dvars in range(2 ** (num_dvars)) if _get_parity(dvars)][
+            basis
+        ]
         if bit:
             dvars = ~dvars
-        dvars = _bitfield(dvars, num_dvars)
+        dvars = _get_bitfield(dvars, num_dvars)
         return dvars
 
     def _dvar_values_from_bits(
         self,
         bits: List[int],
         bases: List[int],
-        operator_from_dvar: Dict[int, Tuple[int, PrimitiveOp]],
-        dvars_from_qubit: List[List[int]],
+        dvar_to_op: Dict[int, Tuple[int, PrimitiveOp]],
+        qubit_to_dvars: List[List[int]],
     ) -> List[int]:
         dvar_values = {}
-        for qubit, dvars in enumerate(dvars_from_qubit):
+        for qubit, dvars in enumerate(qubit_to_dvars):
             qubit_dvar_values = self._dvar_values_from_bit(
                 len(dvars), bases[qubit], bits[qubit]
             )
             for dvar in dvars:
-                _, operator = operator_from_dvar[dvar]
+                _, operator = dvar_to_op[dvar]
                 dvar_values[dvar] = qubit_dvar_values[
-                    self._OPERATOR_INDICES[len(dvars)][str(operator)]
+                    QuantumRandomAccessEncoding.NUM_DVARS_TO_OPS[len(dvars)].index(operator)
                 ]
         return [dvar_values[dvar] for dvar in range(len(dvar_values))]
 

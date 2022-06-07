@@ -15,8 +15,11 @@
 from typing import Optional
 
 import networkx as nx
+
 import numpy as np
+
 from docplex.mp.model import Model
+
 from qiskit_optimization import QuadraticProgram
 from qiskit_optimization.translators import from_docplex_mp
 

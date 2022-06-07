@@ -433,7 +433,6 @@ class QuantumRandomAccessEncoding:
 
         # Extract the constant term from the problem objective function.
         offset = problem.objective.constant * sense
-        self._offset = offset
 
         # Extract the linear terms from the problem objective function.
         linear_terms = np.zeros(num_dvars)
@@ -454,6 +453,8 @@ class QuantumRandomAccessEncoding:
                 linear_terms[i] -= weight
                 linear_terms[j] -= weight
                 offset += weight
+
+        self._offset = offset
 
         # Find a partition of decision variables (a graph coloring is sufficient).
         dvars_partition = self._find_variable_partition(quadratic_terms)

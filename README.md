@@ -94,16 +94,6 @@ Documentation is stored in the [`docs/`](docs/) directory.  It is organized acco
 
 The current version of this module has some important usage notes and limitations.
 
-#### Encoding Limitations
-
-The [Magic Rounding scheme](https://github.com/qiskit-community/prototype-qrao/blob/main/qrao/magic_rounding.py) is currently only compatible with the (3,1,p) QRAC for encoding classical binary variables onto qubits. If using this rounding scheme, be sure to set `max_vars_per_qubit=3` when instantiating the encoding:
-```
-encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=3)
-```
-Refer to the [tutorial on rounding schemes](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/tutorials/02_advanced_usage.ipynb) for example usage.
-
-We plan to make Magic Rounding compatible with additional encoding options in the future.
-
 #### Supported Problem Types
 
 As with `qiskit-optimization`, this module currently only supports input problems that are of type `QuadraticProgram` and that can be converted to a QUBO. Furthermore, the conversion to a QUBO must be made _before_ encoding the problem into a quantum Hamiltonian with `QuantumRandomAccessEncoding` (refer to the tutorial to [see an example of this](https://github.com/qiskit-community/prototype-qrao/blob/main/docs/tutorials/01_getting_started.ipynb)).

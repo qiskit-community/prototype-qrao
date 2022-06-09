@@ -29,6 +29,7 @@ jobs:
           sed -i 's/[>~]=/==/g' requirements-dev.txt requirements.txt
           cat <<- EOF > get_tox_minversion.py
           import configparser
+
           config = configparser.ConfigParser()
           config.read("tox.ini")
           print(config["tox"]["minversion"])
@@ -39,6 +40,10 @@ jobs:
         run: |
           sed -i.bak -E '/#.*CI:[[:space:]]*skip-next-line/I{N;d;}' tox.ini
           cat tox.ini
+      - name: Run the linter
+        run: tox -elint
+      - name: Build the documentation
+        run: tox -edocs
       - name: Test using tox environment
         shell: bash
         run: |

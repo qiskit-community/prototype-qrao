@@ -5,10 +5,3 @@ qiskit-aer>=0.10.3
 qiskit-ibmq-provider>=0.18.3
 qiskit-optimization>=0.3.0
 matplotlib>=3.0.0
-
-# The following lines aren't strictly required by qrao if it is used as
-# a library, but they are required for one of the included Jupyter
-# notebooks, so we include them in this prototype's requirements for
-# convenience.
-cplex>=12.10
-tqdm[notebook]>=4.64

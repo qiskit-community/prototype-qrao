@@ -29,6 +29,7 @@ jobs:
           sed -i 's/[>~]=/==/g' requirements-dev.txt requirements.txt
           cat <<- EOF > get_tox_minversion.py
           import configparser
+
           config = configparser.ConfigParser()
           config.read("tox.ini")
           print(config["tox"]["minversion"])

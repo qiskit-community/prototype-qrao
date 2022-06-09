@@ -352,7 +352,7 @@ class MagicRounding(RoundingScheme):
                 basis_probs.append([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
             elif vars_per_qubit == 2:
                 x = 0.5 * (1 - tv[dvars[0]])
-                z = 0.5 * (1 - tv[dvars[1]])
+                z = 0.5 * (1 - tv[dvars[1]]) if (len(dvars) > 1) else 0
                 # pp:   xi±   = .5(I ± 1/sqrt(2)( X + Z ))
                 # pm: X xi± X = .5(I ± 1/sqrt(2)( X - Z ))
                 # fmt: off

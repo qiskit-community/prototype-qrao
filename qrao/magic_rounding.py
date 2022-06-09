@@ -24,7 +24,7 @@ from qiskit.providers import Backend
 from qiskit.opflow import PrimitiveOp
 from qiskit.utils import QuantumInstance
 
-from .encoding import z_to_31p_qrac_basis_circuit
+from .encoding import z_to_31p_qrac_basis_circuit, z_to_21p_qrac_basis_circuit
 from .rounding_common import (
     RoundingSolutionSample,
     RoundingScheme,
@@ -99,17 +99,22 @@ class MagicRounding(RoundingScheme):
 
     """
 
-    # This information should really come from the encoding.
-    # Right now it's basically hard coded for one QRAC.
-    _ASSIGN = (
-        {"0": (0, 0, 0), "1": (1, 1, 1)},  # IMI
-        {"0": (0, 1, 1), "1": (1, 0, 0)},  # XMX
-        {"0": (1, 0, 1), "1": (0, 1, 0)},  # YMY
-        {"0": (1, 1, 0), "1": (0, 0, 1)},  # ZMZ
-    )
+    _DECODING = {
+        3: (
+            {"0": [0, 0, 0], "1": [1, 1, 1]},
+            {"0": [0, 1, 1], "1": [1, 0, 0]},
+            {"0": [1, 0, 1], "1": [0, 1, 0]},
+            {"0": [1, 1, 0], "1": [0, 0, 1]},
+        ),
+        2: (
+            {"0": [0, 0], "1": [1, 1]},
+            {"0": [0, 1], "1": [1, 0]},
+        ),
+        1: ({"0": [0], "1": [1]},),
+    }
 
-    # Pauli op string to label index in ops (assumes 3-QRAC)
-    _XYZ = {"X": 0, "Y": 1, "Z": 2}
+    # Pauli op string to label index in ops
+    _OP_INDICES = {1: {"Z": 0}, 2: {"X": 0, "Z": 1}, 3: {"X": 0, "Y": 1, "Z": 2}}
 
     def __init__(
         self,
@@ -182,6 +187,7 @@ class MagicRounding(RoundingScheme):
         bits: str,
         basis: List[int],
         var2op: Dict[int, Tuple[int, PrimitiveOp]],
+        vars_per_qubit: int,
     ) -> List[int]:
         output_bits = []
         # iterate in order over decision variables
@@ -190,10 +196,10 @@ class MagicRounding(RoundingScheme):
             q, op = var2op[var]
             # get the index in [0,1,2] corresponding
             # to each possible Pauli.
-            op_index = self._XYZ[str(op)]
+            op_index = self._OP_INDICES[vars_per_qubit][str(op)]
             # get the bits associated to this magic basis'
             # measurement outcomes
-            bit_outcomes = self._ASSIGN[basis[q]]
+            bit_outcomes = self._DECODING[vars_per_qubit][basis[q]]
             # select which measurement outcome we observed
             # this gives up to 3 bits of information
             magic_bits = bit_outcomes[bits[q]]
@@ -205,19 +211,21 @@ class MagicRounding(RoundingScheme):
 
     @staticmethod
     def _make_circuits(
-        circ: QuantumCircuit, bases: List[List[int]], measure: bool
+        circ: QuantumCircuit, bases: List[List[int]], measure: bool, vars_per_qubit: int
     ) -> List[QuantumCircuit]:
         circuits = []
         for basis in bases:
-            qc = circ.compose(
-                z_to_31p_qrac_basis_circuit(basis).inverse(), inplace=False
-            )
+            qc = circ.copy()
+            if vars_per_qubit == 3:
+                qc.compose(z_to_31p_qrac_basis_circuit(basis).inverse(), inplace=True)
+            elif vars_per_qubit == 2:
+                qc.compose(z_to_21p_qrac_basis_circuit(basis).inverse(), inplace=True)
             if measure:
                 qc.measure_all()
             circuits.append(qc)
         return circuits
 
-    def _evaluate_magic_bases(self, circuit, bases, basis_shots):
+    def _evaluate_magic_bases(self, circuit, bases, basis_shots, vars_per_qubit):
         """
         Given a circuit you wish to measure, a list of magic bases to measure,
         and a list of the shots to use for each magic basis configuration.
@@ -228,7 +236,7 @@ class MagicRounding(RoundingScheme):
         len(bases) == len(basis_shots) == len(basis_counts)
         """
         measure = not _is_original_statevector_simulator(self.quantum_instance.backend)
-        circuits = self._make_circuits(circuit, bases, measure)
+        circuits = self._make_circuits(circuit, bases, measure, vars_per_qubit)
 
         # Execute each of the rotated circuits and collect the results
 
@@ -281,7 +289,7 @@ class MagicRounding(RoundingScheme):
 
         return basis_counts
 
-    def _compute_dv_counts(self, basis_counts, bases, var2op):
+    def _compute_dv_counts(self, basis_counts, bases, var2op, vars_per_qubit):
         """
         Given a list of bases, basis_shots, and basis_counts, convert
         each observed bitstrings to its corresponding decision variable
@@ -294,7 +302,9 @@ class MagicRounding(RoundingScheme):
             for bitstr, count in counts.items():
 
                 # For each bit in the observed bitstring...
-                soln = self._unpack_measurement_outcome(bitstr, base, var2op)
+                soln = self._unpack_measurement_outcome(
+                    bitstr, base, var2op, vars_per_qubit
+                )
                 soln = "".join([str(int(bit)) for bit in soln])
                 if soln in dv_counts:
                     dv_counts[soln] += count
@@ -302,17 +312,15 @@ class MagicRounding(RoundingScheme):
                     dv_counts[soln] = count
         return dv_counts
 
-    def _sample_bases_uniform(self, q2vars):
+    def _sample_bases_uniform(self, q2vars, vars_per_qubit):
         bases = [
-            self.rng.choice(
-                4, size=len(q2vars), p=[1 / 4, 1 / 4, 1 / 4, 1 / 4]
-            ).tolist()
+            self.rng.choice(2 ** (vars_per_qubit - 1), size=len(q2vars)).tolist()
             for _ in range(self.shots)
         ]
         bases, basis_shots = np.unique(bases, axis=0, return_counts=True)
         return bases, basis_shots
 
-    def _sample_bases_weighted(self, q2vars, trace_values):
+    def _sample_bases_weighted(self, q2vars, trace_values, vars_per_qubit):
         """Perform weighted sampling from the expectation values.
 
         The goal is to make smarter choices about which bases to measure in
@@ -327,23 +335,43 @@ class MagicRounding(RoundingScheme):
         # probability of picking the corresponding magic basis on that qubit.
         basis_probs = []
         for dvars in q2vars:
-            x = 0.5 * (1 - tv[dvars[0]])
-            y = 0.5 * (1 - tv[dvars[1]]) if (len(dvars) > 1) else 0
-            z = 0.5 * (1 - tv[dvars[2]]) if (len(dvars) > 2) else 0
-            # ppp:   mu±   = .5(I ± 1/sqrt(3)( X + Y + Z))
-            # ppm: X mu± X = .5(I ± 1/sqrt(3)( X + Y - Z))
-            # mpm: Y mu± Y = .5(I ± 1/sqrt(3)(-X + Y - Z))
-            # pmm: Z mu± Z = .5(I ± 1/sqrt(3)( X - Y - Z))
-            # fmt: off
-            ppp_mmm =   x   *   y   *   z   + (1-x) * (1-y) * (1-z)
-            ppm_mmp =   x   *   y   * (1-z) + (1-x) * (1-y) *   z
-            mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
-            pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
-            # fmt: on
-            basis_probs.append([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
-
+            if vars_per_qubit == 3:
+                x = 0.5 * (1 - tv[dvars[0]])
+                y = 0.5 * (1 - tv[dvars[1]]) if (len(dvars) > 1) else 0
+                z = 0.5 * (1 - tv[dvars[2]]) if (len(dvars) > 2) else 0
+                # ppp:   mu±   = .5(I ± 1/sqrt(3)( X + Y + Z))
+                # ppm: X mu± X = .5(I ± 1/sqrt(3)( X + Y - Z))
+                # mpm: Y mu± Y = .5(I ± 1/sqrt(3)(-X + Y - Z))
+                # pmm: Z mu± Z = .5(I ± 1/sqrt(3)( X - Y - Z))
+                # fmt: off
+                ppp_mmm =   x   *   y   *   z   + (1-x) * (1-y) * (1-z)
+                ppm_mmp =   x   *   y   * (1-z) + (1-x) * (1-y) *   z
+                mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
+                pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
+                # fmt: on
+                basis_probs.append([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
+            elif vars_per_qubit == 2:
+                x = 0.5 * (1 - tv[dvars[0]])
+                z = 0.5 * (1 - tv[dvars[1]])
+                # pp:   xi±   = .5(I ± 1/sqrt(2)( X + Z ))
+                # pm: X xi± X = .5(I ± 1/sqrt(2)( X - Z ))
+                # fmt: off
+                pp_mm =   x   *   z   + (1-x) * (1-z)
+                pm_mp =   x   * (1-z) + (1-x) *   z
+                # fmt: on
+                basis_probs.append([pp_mm, pm_mp])
+            elif vars_per_qubit == 1:
+                z = 0.5 * (1 - tv[dvars[0]])
+                # p:   z±   = .5(I ± 1/sqrt(1)( Z ))
+                # fmt: off
+                p = z + (1 - z)
+                # fmt: on
+                basis_probs.append([p])
         bases = [
-            [self.rng.choice(4, size=1, p=probs)[0] for probs in basis_probs]
+            [
+                self.rng.choice(2 ** (vars_per_qubit - 1), p=probs)
+                for probs in basis_probs
+            ]
             for _ in range(self.shots)
         ]
         bases, basis_shots = np.unique(bases, axis=0, return_counts=True)
@@ -351,13 +379,6 @@ class MagicRounding(RoundingScheme):
 
     def round(self, ctx: RoundingContext) -> MagicRoundingResult:
         """Perform magic rounding"""
-
-        if ctx._encoding is not None and ctx._encoding.max_vars_per_qubit != 3:
-            raise ValueError(
-                "Currently, MagicRounding only supports 3-QRACs, "
-                "but the passed encoding is a "
-                f"{ctx._encoding.max_vars_per_qubit}-QRAC."
-            )
 
         start_time = time.time()
         trace_values = ctx.trace_values
@@ -371,14 +392,18 @@ class MagicRounding(RoundingScheme):
 
         # We've already checked that it is one of these two in the constructor
         if self.basis_sampling == "uniform":
-            bases, basis_shots = self._sample_bases_uniform(ctx.q2vars)
+            bases, basis_shots = self._sample_bases_uniform(
+                ctx.q2vars, ctx.vars_per_qubit
+            )
         elif self.basis_sampling == "weighted":
             if trace_values is None:
                 raise NotImplementedError(
                     "Magic rounding with weighted sampling requires the trace values "
                     "to be available, but they are not."
                 )
-            bases, basis_shots = self._sample_bases_weighted(ctx.q2vars, trace_values)
+            bases, basis_shots = self._sample_bases_weighted(
+                ctx.q2vars, trace_values, ctx.vars_per_qubit
+            )
         else:  # pragma: no cover
             raise NotImplementedError(
                 f'No such basis sampling method: "{self.basis_sampling}".'
@@ -389,10 +414,14 @@ class MagicRounding(RoundingScheme):
         # the appropriate number of times (given by basis_shots)
         # and return the circuit results
 
-        basis_counts = self._evaluate_magic_bases(circuit, bases, basis_shots)
+        basis_counts = self._evaluate_magic_bases(
+            circuit, bases, basis_shots, ctx.vars_per_qubit
+        )
         # keys will be configurations of decision variables
         # values will be total number of observations.
-        soln_counts = self._compute_dv_counts(basis_counts, bases, ctx.var2op)
+        soln_counts = self._compute_dv_counts(
+            basis_counts, bases, ctx.var2op, ctx.vars_per_qubit
+        )
 
         soln_samples = [
             RoundingSolutionSample(

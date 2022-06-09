@@ -20,6 +20,11 @@ with open("README.md", encoding="utf-8") as f:
 with open("requirements.txt") as f:
     install_requires = f.read().splitlines()
 
+tutorial_requirements = [
+    "cplex>=12.10",
+    "tqdm[notebook]>=4.64",
+]
+
 setuptools.setup(
     name="qrao",
     description="Quantum Random Access Optimization",
@@ -46,4 +51,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
     ],
+    extra_require={
+        "tutorial": tutorial_requirements,
+    },
 )

@@ -33,7 +33,6 @@ from qiskit.opflow import (
 from qiskit_optimization.translators import from_docplex_mp
 
 from qrao import (
-    QuantumRandomAccessEncoding,
     RoundingContext,
     MagicRounding,
 )

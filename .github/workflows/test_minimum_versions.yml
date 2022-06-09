@@ -40,8 +40,12 @@ jobs:
         run: |
           sed -i.bak -E '/#.*CI:[[:space:]]*skip-next-line/I{N;d;}' tox.ini
           cat tox.ini
+      - name: Run the linter
+        run: tox -elint
+      - name: Build the documentation
+        run: tox -edocs
       - name: Test using tox environment
         shell: bash
         run: |
           pver=${{ matrix.python-version }}
-          tox -elint,docs,py${pver/./}
+          tox -epy${pver/./}

@@ -58,9 +58,15 @@ The `py##` environments are the main test environments.  tox defines one for eac
 $ tox -epy38,py39,py310
 ```
 
-First, these environments execute all tests using [pytest], which supports its own simple style of tests, in addition to [unittest]-style tests and [doctests] located throughout the project's docstrings.
+These environments execute all tests using [pytest], which supports its own simple style of tests, in addition to [unittest]-style tests and [doctests] located throughout the project's docstrings.
 
-Second, these environments invoke [treon] to ensure that all Jupyter notebooks in the [`docs/`](/docs/) directory execute successfully.
+### Notebook test (py##-notebooks) environments
+
+These environments invoke [treon] to ensure that all Jupyter notebooks in the [`docs/`](/docs/) directory execute successfully.
+
+```sh
+$ tox -epy38-notebooks
+```
 
 ### Coverage environment
 

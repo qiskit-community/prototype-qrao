@@ -49,3 +49,8 @@ jobs:
         run: |
           pver=${{ matrix.python-version }}
           tox -epy${pver/./}
+      - name: Test notebooks using tox environment
+        shell: bash
+        run: |
+          pver=${{ matrix.python-version }}
+          tox -epy${pver/./}-notebooks

@@ -20,7 +20,7 @@ with open("README.md", encoding="utf-8") as f:
 with open("requirements.txt") as f:
     install_requires = f.read().splitlines()
 
-tutorial_requirements = [
+notebook_requirements = [
     "cplex>=12.10",
     "tqdm[notebook]>=4.64",
 ]
@@ -52,6 +52,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3.10",
     ],
     extra_require={
-        "tutorial": tutorial_requirements,
+        "notebook-dependencies": notebook_requirements,
     },
 )

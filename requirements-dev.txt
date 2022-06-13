@@ -14,10 +14,3 @@ reno>=3.5.0
 # Black's formatting rules can change between major versions, so we use
 # the ~= specifier for it.
 black[jupyter]~=22.3
-
-# The following lines aren't strictly required by qrao if it is used as
-# a library, but they are required for one of the included Jupyter
-# notebooks, so we include them in this prototype's requirements for
-# convenience.
-cplex>=12.10
-tqdm[notebook]>=4.64

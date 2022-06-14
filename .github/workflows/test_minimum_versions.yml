@@ -39,8 +39,6 @@ jobs:
           print(config["tox"]["minversion"])
           EOF
           pip install tox==$(python3 get_tox_minversion.py)
-      - name: cat setup.py
-        run: cat setup.py
       - name: Modify tox.ini for more thorough check
         shell: bash
         run: |

@@ -26,6 +26,7 @@ from qrao.utils import get_random_maxcut_qp
 
 
 def check_problem_commutation(problem: QuadraticProgram, max_vars_per_qubit: int):
+    """Utility function to check that the problem commutes with its encoding"""
     encoding = QuantumRandomAccessEncoding(max_vars_per_qubit=max_vars_per_qubit)
     encoding.encode(problem)
     verifier = EncodingCommutationVerifier(encoding)
@@ -38,7 +39,7 @@ def check_problem_commutation(problem: QuadraticProgram, max_vars_per_qubit: int
 @pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
 @pytest.mark.parametrize("task", ["minimize", "maximize"])
 def test_one_qubit_qrac(max_vars_per_qubit, task):
-    """Non-uniform weights, degree 1 terms"""
+    """Test commutation of single qubit QRAC with non-uniform weights, degree 1 terms"""
     mod = Model("maxcut")
     num_nodes = max_vars_per_qubit
     nodes = list(range(num_nodes))
@@ -54,6 +55,7 @@ def test_one_qubit_qrac(max_vars_per_qubit, task):
 @pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
 @pytest.mark.parametrize("task", ["minimize", "maximize"])
 def test_uniform_weights_degree_2(max_vars_per_qubit, task):
+    """Test problem commutation with degree 2 terms"""
     # Note that the variable embedding has some qubits with 1, 2, and 3 qubits
     num_nodes = 6
     elist = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0), (0, 3), (1, 4), (2, 4)]
@@ -78,6 +80,7 @@ def test_uniform_weights_degree_2(max_vars_per_qubit, task):
 
 @pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
 def test_random_unweighted_maxcut_problem(max_vars_per_qubit):
+    """Test problem commutation on random max-cut problem"""
     problem = get_random_maxcut_qp(degree=3, num_nodes=8)
     check_problem_commutation(problem, max_vars_per_qubit=max_vars_per_qubit)
 
@@ -85,6 +88,7 @@ def test_random_unweighted_maxcut_problem(max_vars_per_qubit):
 @pytest.mark.parametrize("max_vars_per_qubit", [1, 2, 3])
 @pytest.mark.parametrize("task", ["minimize", "maximize"])
 def test_nonuniform_weights_degree_1_and_2_terms(max_vars_per_qubit, task):
+    """Test problem commutation with non-uniform weights"""
     num_nodes = 6
     elist = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0), (0, 3), (1, 4), (2, 5)]
     edges = np.zeros((num_nodes, num_nodes))

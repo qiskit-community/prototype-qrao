@@ -78,6 +78,7 @@ class RoundingResult:
 
     @property
     def samples(self) -> List[RoundingSolutionSample]:
+        """List of samples"""
         return self._samples
 
 

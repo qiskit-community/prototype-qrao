@@ -51,7 +51,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
     ],
-    extra_require={
+    extras_require={
         "notebook-dependencies": notebook_requirements,
     },
 )

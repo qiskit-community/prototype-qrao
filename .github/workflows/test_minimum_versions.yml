@@ -27,6 +27,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           sed -i 's/[>~]=/==/g' requirements-dev.txt requirements.txt
+          # The following line is a bit obscure, but the goal is to
+          # modify all version specifiers passed to `extras_require`,
+          # but not the one passed to `python_requires`.
+          sed -i 's/\([^"]\)[>~]=\([[:digit:]]\)/\1==\2/g' setup.py
           cat <<- EOF > get_tox_minversion.py
           import configparser
 

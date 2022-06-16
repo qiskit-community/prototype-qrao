@@ -331,16 +331,16 @@ class MagicRounding(RoundingScheme):
             y = 0.5 * (1 - tv[dvars[1]]) if (len(dvars) > 1) else 0
             z = 0.5 * (1 - tv[dvars[2]]) if (len(dvars) > 2) else 0
             # ppp:   mu±   = .5(I ± 1/sqrt(3)( X + Y + Z))
-            # ppm: X mu± X = .5(I ± 1/sqrt(3)( X + Y - Z))
+            # pmm: X mu± X = .5(I ± 1/sqrt(3)( X - Y - Z))
             # mpm: Y mu± Y = .5(I ± 1/sqrt(3)(-X + Y - Z))
-            # pmm: Z mu± Z = .5(I ± 1/sqrt(3)( X - Y - Z))
+            # mmp: Z mu± Z = .5(I ± 1/sqrt(3)(-X - Y + Z))
             # fmt: off
             ppp_mmm =   x   *   y   *   z   + (1-x) * (1-y) * (1-z)
-            ppm_mmp =   x   *   y   * (1-z) + (1-x) * (1-y) *   z
-            mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
             pmm_mpp =   x   * (1-y) * (1-z) + (1-x) *   y   *   z
+            mpm_pmp = (1-x) *   y   * (1-z) +   x   * (1-y) *   z
+            ppm_mmp =   x   *   y   * (1-z) + (1-x) * (1-y) *   z
             # fmt: on
-            basis_probs.append([ppp_mmm, ppm_mmp, mpm_pmp, pmm_mpp])
+            basis_probs.append([ppp_mmm, pmm_mpp, mpm_pmp, ppm_mmp])
 
         bases = [
             [self.rng.choice(4, size=1, p=probs)[0] for probs in basis_probs]

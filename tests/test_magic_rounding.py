@@ -60,9 +60,9 @@ class TestMagicRounding(unittest.TestCase):
 
         self.deterministic_trace_vals = [
             [1, 1, 1],
-            [-1, -1, 1],
-            [1, -1, 1],
             [1, -1, -1],
+            [1, -1, 1],
+            [1, 1, -1],
         ]
 
         elist = [(0, 1), (0, 4), (0, 3), (1, 2), (1, 5), (2, 3), (2, 4), (4, 5), (5, 3)]
@@ -239,15 +239,8 @@ class TestMagicRounding(unittest.TestCase):
         magic = MagicRounding(quantum_instance=rounding_qi, basis_sampling="weighted")
         sample_bases_weighted = magic._sample_bases_weighted
 
-        stable_inputs = [
-            ([1, 1, 1], 0),
-            ([1, 1, -1], 1),
-            ([1, -1, 1], 2),
-            ([1, -1, -1], 3),
-        ]
-
-        for tv0, b0 in stable_inputs:
-            for tv1, b1 in stable_inputs:
+        for b0, tv0 in enumerate(self.deterministic_trace_vals):
+            for b1, tv1 in enumerate(self.deterministic_trace_vals):
                 tv = tv0 + tv1
                 bases, basis_shots = sample_bases_weighted(q2vars, tv)
                 self.assertTrue(np.all(np.array([b0, b1]) == bases))

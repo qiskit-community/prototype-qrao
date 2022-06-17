@@ -266,6 +266,8 @@ class QuantumRandomAccessEncoding:
     def __init__(self, max_vars_per_qubit: int = 3):
         if max_vars_per_qubit not in (1, 2, 3):
             raise ValueError("max_vars_per_qubit must be 1, 2, or 3")
+        if not isinstance(max_vars_per_qubit, int):
+            raise TypeError("max_vars_per_qubit must be an `int`")
         self._max_vars_per_qubit = max_vars_per_qubit
 
         self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None

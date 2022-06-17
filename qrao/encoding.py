@@ -190,6 +190,12 @@ def qrac_state_prep_multiqubit(
     q2vars: List[List[int]],
     max_vars_per_qubit: int,
 ) -> CircuitStateFn:
+    """
+    Prepare a multiqubit QRAC state.
+
+    Args:
+        dvars: state of each decision variable (0 or 1)
+    """
     remaining_dvars = set(dvars if isinstance(dvars, dict) else range(len(dvars)))
     ordered_bits = []
     for qi_vars in q2vars:
@@ -271,35 +277,50 @@ class QuantumRandomAccessEncoding:
 
     @property
     def num_qubits(self) -> int:
+        """Number of qubits"""
         return len(self._q2vars)
 
     @property
     def num_vars(self) -> int:
+        """Number of decision variables"""
         return len(self._var2op)
 
     @property
     def max_vars_per_qubit(self) -> int:
+        """Maximum number of variables per qubit
+
+        This is set in the constructor and controls the maximum compression ratio
+        """
+
         return self._max_vars_per_qubit
 
     @property
     def var2op(self) -> Dict[int, Tuple[int, PrimitiveOp]]:
+        """Maps each decision variable to ``(qubit_index, operator)``"""
         return self._var2op
 
     @property
     def q2vars(self) -> List[List[int]]:
+        """Each element contains the list of decision variable indice(s) encoded on that qubit"""
         return self._q2vars
 
     @property
     def compression_ratio(self) -> float:
+        """Compression ratio
+
+        Number of decision variables divided by number of qubits
+        """
         return self.num_vars / self.num_qubits
 
     @property
     def minimum_recovery_probability(self) -> float:
+        """Minimum recovery probability, as set by ``max_vars_per_qubit``"""
         n = self.max_vars_per_qubit
         return (1 + 1 / np.sqrt(n)) / 2
 
     @property
     def qubit_op(self) -> Union[PauliOp, PauliSumOp]:
+        """Relaxed Hamiltonian operator"""
         if self._qubit_op is None:
             raise AttributeError(
                 "No objective function has been provided from which a "
@@ -311,6 +332,7 @@ class QuantumRandomAccessEncoding:
 
     @property
     def offset(self) -> float:
+        """Relaxed Hamiltonian offset"""
         if self._offset is None:
             raise AttributeError(
                 "No objective function has been provided from which a "
@@ -322,6 +344,7 @@ class QuantumRandomAccessEncoding:
 
     @property
     def problem(self) -> QuadraticProgram:
+        """The ``QuadraticProgram`` used as basis for the encoding"""
         if self._problem is None:
             raise AttributeError(
                 "No quadratic program has been associated with this object. "
@@ -386,6 +409,10 @@ class QuantumRandomAccessEncoding:
             self._qubit_op += op
 
     def term2op(self, *variables: int) -> PauliOp:
+        """Construct a ``PauliOp`` that is a product of encoded decision ``variable``\\(s).
+
+        The decision variables provided must all be encoded on different qubits.
+        """
         ops = [I] * self.num_qubits
         done = set()
         for x in variables:
@@ -395,6 +422,41 @@ class QuantumRandomAccessEncoding:
             ops[pos] = op
             done.add(pos)
         return reduce(lambda x, y: x ^ y, ops)
+
+    @staticmethod
+    def _generate_ising_terms(
+        problem: QuadraticProgram,
+    ) -> Tuple[float, np.ndarray, np.ndarray]:
+        num_vars = problem.get_num_vars()
+
+        # set a sign corresponding to a maximized or minimized problem:
+        # 1 is for minimized problem, -1 is for maximized problem.
+        sense = problem.objective.sense.value
+
+        # convert a constant part of the objective function into Hamiltonian.
+        offset = problem.objective.constant * sense
+
+        # convert linear parts of the objective function into Hamiltonian.
+        linear = np.zeros(num_vars)
+        for idx, coef in problem.objective.linear.to_dict().items():
+            weight = coef * sense / 2
+            linear[idx] -= weight
+            offset += weight
+
+        # convert quadratic parts of the objective function into Hamiltonian.
+        quad = np.zeros((num_vars, num_vars))
+        for (i, j), coef in problem.objective.quadratic.to_dict().items():
+            weight = coef * sense / 4
+            if i == j:
+                linear[i] -= 2 * weight
+                offset += 2 * weight
+            else:
+                quad[i, j] += weight
+                linear[i] -= weight
+                linear[j] -= weight
+                offset += weight
+
+        return offset, linear, quad
 
     @staticmethod
     def _find_variable_partition(quad: np.ndarray) -> Dict[int, List[int]]:
@@ -453,35 +515,10 @@ class QuantumRandomAccessEncoding:
                 "constraints to penalty terms of the objective function."
             )
 
-        # initialize Hamiltonian.
         num_vars = problem.get_num_vars()
 
-        # set a sign corresponding to a maximized or minimized problem:
-        # 1 is for minimized problem, -1 is for maximized problem.
-        sense = problem.objective.sense.value
-
-        # convert a constant part of the objective function into Hamiltonian.
-        offset = problem.objective.constant * sense
-
-        # convert linear parts of the objective function into Hamiltonian.
-        linear = np.zeros(num_vars)
-        for idx, coef in problem.objective.linear.to_dict().items():
-            weight = coef * sense / 2
-            linear[idx] -= weight
-            offset += weight
-
-        # convert quadratic parts of the objective function into Hamiltonian.
-        quad = np.zeros((num_vars, num_vars))
-        for (i, j), coef in problem.objective.quadratic.to_dict().items():
-            weight = coef * sense / 4
-            if i == j:
-                linear[i] -= 2 * weight
-                offset += 2 * weight
-            else:
-                quad[i, j] += weight
-                linear[i] -= weight
-                linear[j] -= weight
-                offset += weight
+        # Generate the decision variable terms in terms of Ising variables (+1 or -1)
+        offset, linear, quad = self._generate_ising_terms(problem)
 
         # Find variable partition (a graph coloring is sufficient)
         variable_partition = self._find_variable_partition(quad)
@@ -547,7 +584,8 @@ class QuantumRandomAccessEncoding:
         if self._frozen:
             raise RuntimeError("Cannot modify an encoding that has been frozen")
 
-    def state_prep(self, dvars: Union[Dict[int, int], List[int]]):
+    def state_prep(self, dvars: Union[Dict[int, int], List[int]]) -> CircuitStateFn:
+        """Prepare a multiqubit QRAC state."""
         return qrac_state_prep_multiqubit(dvars, self.q2vars, self.max_vars_per_qubit)
 
 

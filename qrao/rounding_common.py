@@ -23,6 +23,9 @@ from qiskit.opflow import PrimitiveOp
 from .encoding import QuantumRandomAccessEncoding, q2vars_from_var2op
 
 
+# pylint: disable=too-few-public-methods
+
+
 @dataclass
 class RoundingSolutionSample:
     """Partial SolutionSample for use in rounding results"""
@@ -75,6 +78,7 @@ class RoundingResult:
 
     @property
     def samples(self) -> List[RoundingSolutionSample]:
+        """List of samples"""
         return self._samples
 
 

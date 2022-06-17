@@ -43,10 +43,10 @@ Any time you open a new shell and wish to work with QRAO, you will need to activ
 
 ## Install the QRAO prototype
 
-The following command will install the prototype, along with its required dependencies, in "editable" mode (don't forget the `.` after `-e`!). With this, local changes to the source files in your cloned repository will be reflected immediately in the installed environment.
+The following command will install the prototype, along with its required dependencies and those of the included notebooks, in "editable" mode (don't forget the `.` after `-e`!). With this, local changes to the source files in your cloned repository will be reflected immediately in the installed environment.
 
 ```sh
-$ pip install -e .
+$ pip install -e '.[notebook-dependencies]'
 ```
 
 ## Testing the Installation (optional)
@@ -79,6 +79,6 @@ Then, start the notebook server.  From the root directory:
 $ jupyter notebook
 ```
 
-Make sure the notebook server is started from the same Python environment (venv or conda) from which you ran `pip install -e .`; otherwise, it may not find `qrao` in the path.
+Make sure the notebook server is started from the same Python environment (venv or conda) from which you ran `pip install -e '.[notebook-dependencies]'`; otherwise, it may not find `qrao` in the path.
 
 Once the notebook server starts, it will provide a URL for accessing it through your web browser.  To find the tutorial notebooks, navigate in the browser to `docs` and then `tutorials`.

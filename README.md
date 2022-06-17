@@ -73,7 +73,7 @@ $ git clone https://github.com/qiskit-community/prototype-qrao.git
 $ cd qrao
 $ python3 -m venv venv
 $ source venv/bin/activate
-$ pip install tox notebook -e .
+$ pip install tox notebook -e '.[notebook-dependencies]'
 $ jupyter notebook
 ```
 

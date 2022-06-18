@@ -33,6 +33,7 @@ from qiskit.opflow import (
 from qiskit_optimization.translators import from_docplex_mp
 
 from qrao import (
+    QuantumRandomAccessEncoding,
     RoundingContext,
     MagicRounding,
 )
@@ -372,18 +373,18 @@ def test_magic_rounding_statistical():
         ((0, 1, 0), 2, 1),
         ((1, 1, 0), 3, 0),
         ((0, 0, 1), 3, 1),
-        # 2 variables encoded as a (3,1,p) QRAC (see issue #11)
+        # 2 variables encoded as a (2,1,p) QRAC
         ((0, 0), 0, 0),
-        ((1, 1), 3, 0),
-        ((0, 1), 2, 1),
+        ((1, 1), 0, 1),
+        ((0, 1), 1, 0),
         ((1, 0), 1, 1),
-        # 1 variable encoded as a (3,1,p) QRAC (see issue #11)
+        # 1 variable encoded as a (1,1,1) QRAC
         ((0,), 0, 0),
-        ((1,), 1, 1),
+        ((1,), 0, 1),
     )
 
     for (m, basis, expected) in test_cases:
-        encoding = QuantumRandomAccessEncoding()
+        encoding = QuantumRandomAccessEncoding(len(m))
         encoding._add_variables(list(range(len(m))))
         circuit = encoding.state_prep(m).to_circuit()
         result = mr.round(RoundingContext(encoding=encoding, circuit=circuit))

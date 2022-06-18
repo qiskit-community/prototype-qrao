@@ -7,6 +7,9 @@
   `qrao`, so that `qrao` can be more easily used as a library.  If you
   wish to install these optional dependencies, run
   `pip install -e '.[notebook-dependencies]'`. ([#34])
+- 2022-06-09: Added a comparison to exact optimal function value using
+  `CplexOptimizer` in the first tutorial ([#27])
 
+[#27]: https://github.com/qiskit-community/prototype-qrao/pull/27
 [#34]: https://github.com/qiskit-community/prototype-qrao/pull/34
 [#40]: https://github.com/qiskit-community/prototype-qrao/pull/40

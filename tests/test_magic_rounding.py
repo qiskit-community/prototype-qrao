@@ -60,9 +60,9 @@ class TestMagicRounding(unittest.TestCase):
 
         self.deterministic_trace_vals = [
             [1, 1, 1],
-            [-1, -1, 1],
-            [1, -1, 1],
             [1, -1, -1],
+            [1, -1, 1],
+            [1, 1, -1],
         ]
 
         elist = [(0, 1), (0, 4), (0, 3), (1, 2), (1, 5), (2, 3), (2, 4), (4, 5), (5, 3)]
@@ -239,15 +239,8 @@ class TestMagicRounding(unittest.TestCase):
         magic = MagicRounding(quantum_instance=rounding_qi, basis_sampling="weighted")
         sample_bases_weighted = magic._sample_bases_weighted
 
-        stable_inputs = [
-            ([1, 1, 1], 0),
-            ([1, 1, -1], 1),
-            ([1, -1, 1], 2),
-            ([1, -1, -1], 3),
-        ]
-
-        for tv0, b0 in stable_inputs:
-            for tv1, b1 in stable_inputs:
+        for b0, tv0 in enumerate(self.deterministic_trace_vals):
+            for b1, tv1 in enumerate(self.deterministic_trace_vals):
                 tv = tv0 + tv1
                 bases, basis_shots = sample_bases_weighted(q2vars, tv)
                 self.assertTrue(np.all(np.array([b0, b1]) == bases))
@@ -351,6 +344,45 @@ def test_noisy_quantuminstance():
     var2op = {i: (i // 3, ops[i % 3]) for i in range(3)}
     circuit = qrac_state_prep_1q(0, 1, 0).to_circuit()
     magic.round(RoundingContext(trace_values=[1, 1, 1], var2op=var2op, circuit=circuit))
+
+
+def test_magic_rounding_statistical():
+    """Statistical test for magic rounding
+
+    to make sure each deterministic case rounds consistently
+    """
+    shots = 1024
+    mr = MagicRounding(
+        QuantumInstance(backend=Aer.get_backend("qasm_simulator"), shots=shots)
+    )
+
+    test_cases = (
+        # 3 variables encoded as a (3,1,p) QRAC
+        ((0, 0, 0), 0, 0),
+        ((1, 1, 1), 0, 1),
+        ((0, 1, 1), 1, 0),
+        ((1, 0, 0), 1, 1),
+        ((1, 0, 1), 2, 0),
+        ((0, 1, 0), 2, 1),
+        ((1, 1, 0), 3, 0),
+        ((0, 0, 1), 3, 1),
+        # 2 variables encoded as a (3,1,p) QRAC (see issue #11)
+        ((0, 0), 0, 0),
+        ((1, 1), 3, 0),
+        ((0, 1), 2, 1),
+        ((1, 0), 1, 1),
+        # 1 variable encoded as a (3,1,p) QRAC (see issue #11)
+        ((0,), 0, 0),
+        ((1,), 1, 1),
+    )
+
+    for (m, basis, expected) in test_cases:
+        encoding = QuantumRandomAccessEncoding()
+        encoding._add_variables(list(range(len(m))))
+        circuit = encoding.state_prep(m).to_circuit()
+        result = mr.round(RoundingContext(encoding=encoding, circuit=circuit))
+        deterministic_dict = result.basis_counts[basis]
+        assert set(deterministic_dict) == set([str(expected)])
 
 
 if __name__ == "__main__":

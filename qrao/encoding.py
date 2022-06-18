@@ -193,6 +193,9 @@ def qrac_state_prep_multiqubit(
 ) -> CircuitStateFn:
     """
     Prepare a multiqubit QRAC state.
+
+    Args:
+        dvars: state of each decision variable (0 or 1)
     """
     remaining_dvars = set(dvars if isinstance(dvars, dict) else range(len(dvars)))
     ordered_bits = []
@@ -272,10 +275,9 @@ class QuantumRandomAccessEncoding:
     )
 
     def __init__(self, max_vars_per_qubit: int = 3):
-        try:
-            self._ops = self.OPERATORS[max_vars_per_qubit - 1]
-        except IndexError:
-            raise ValueError("max_vars_per_qubit must be 1, 2, or 3") from None
+        if max_vars_per_qubit not in (1, 2, 3):
+            raise ValueError("max_vars_per_qubit must be 1, 2, or 3")
+        self._ops = self.OPERATORS[max_vars_per_qubit - 1]
 
         self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
         self._problem: Optional[QuadraticProgram] = None
@@ -285,35 +287,50 @@ class QuantumRandomAccessEncoding:
 
     @property
     def num_qubits(self) -> int:
+        """Number of qubits"""
         return len(self._q2vars)
 
     @property
     def num_vars(self) -> int:
+        """Number of decision variables"""
         return len(self._var2op)
 
     @property
     def max_vars_per_qubit(self) -> int:
+        """Maximum number of variables per qubit
+
+        This is set in the constructor and controls the maximum compression ratio
+        """
+
         return len(self._ops)
 
     @property
     def var2op(self) -> Dict[int, Tuple[int, PrimitiveOp]]:
+        """Maps each decision variable to ``(qubit_index, operator)``"""
         return self._var2op
 
     @property
     def q2vars(self) -> List[List[int]]:
+        """Each element contains the list of decision variable indice(s) encoded on that qubit"""
         return self._q2vars
 
     @property
     def compression_ratio(self) -> float:
+        """Compression ratio
+
+        Number of decision variables divided by number of qubits
+        """
         return self.num_vars / self.num_qubits
 
     @property
     def minimum_recovery_probability(self) -> float:
+        """Minimum recovery probability, as set by ``max_vars_per_qubit``"""
         n = self.max_vars_per_qubit
         return (1 + 1 / np.sqrt(n)) / 2
 
     @property
     def qubit_op(self) -> Union[PauliOp, PauliSumOp]:
+        """Relaxed Hamiltonian operator"""
         if self._qubit_op is None:
             raise AttributeError(
                 "No objective function has been provided from which a "
@@ -330,6 +347,7 @@ class QuantumRandomAccessEncoding:
         "from now on and will be removed in the future."
     )
     def offset(self) -> float:  # pragma: no cover (deprecated)
+        """Relaxed Hamiltonian offset"""
         if self._qubit_op is None:
             raise AttributeError(
                 "No objective function has been provided from which a "
@@ -341,6 +359,7 @@ class QuantumRandomAccessEncoding:
 
     @property
     def problem(self) -> QuadraticProgram:
+        """The ``QuadraticProgram`` used as basis for the encoding"""
         if self._problem is None:
             raise AttributeError(
                 "No quadratic program has been associated with this object. "
@@ -397,6 +416,10 @@ class QuantumRandomAccessEncoding:
             self._qubit_op += op
 
     def term2op(self, *variables: int) -> PauliOp:
+        """Construct a ``PauliOp`` that is a product of encoded decision ``variable``\\(s).
+
+        The decision variables provided must all be encoded on different qubits.
+        """
         ops = [I] * self.num_qubits
         done = set()
         for x in variables:
@@ -568,6 +591,7 @@ class QuantumRandomAccessEncoding:
             raise RuntimeError("Cannot modify an encoding that has been frozen")
 
     def state_prep(self, dvars: Union[Dict[int, int], List[int]]) -> CircuitStateFn:
+        """Prepare a multiqubit QRAC state."""
         return qrac_state_prep_multiqubit(dvars, self.q2vars, self.max_vars_per_qubit)
 
 

@@ -4,7 +4,7 @@ The documentation in this project is organized into four types according to the 
 
 - [Tutorials](tutorials/)
 - [How-to guides](how_tos/)
-- [API Reference](https://qiskit-community.github.io/prototype-qrao/apidocs/) (work in progress)
+- [API Reference](https://qiskit-community.github.io/prototype-qrao/apidocs/)
 - [Explanation](background/) (background material on using quantum random access codes (QRACs) to solve optimization problems)
 
 [Diátaxis framework]: https://diataxis.fr/

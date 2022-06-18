@@ -352,6 +352,45 @@ def test_noisy_quantuminstance():
     )
 
 
+def test_magic_rounding_statistical():
+    """Statistical test for magic rounding
+
+    to make sure each deterministic case rounds consistently
+    """
+    shots = 1024
+    mr = MagicRounding(
+        QuantumInstance(backend=Aer.get_backend("qasm_simulator"), shots=shots)
+    )
+
+    test_cases = (
+        # 3 variables encoded as a (3,1,p) QRAC
+        ((0, 0, 0), 0, 0),
+        ((1, 1, 1), 0, 1),
+        ((0, 1, 1), 1, 0),
+        ((1, 0, 0), 1, 1),
+        ((1, 0, 1), 2, 0),
+        ((0, 1, 0), 2, 1),
+        ((1, 1, 0), 3, 0),
+        ((0, 0, 1), 3, 1),
+        # 2 variables encoded as a (3,1,p) QRAC (see issue #11)
+        ((0, 0), 0, 0),
+        ((1, 1), 3, 0),
+        ((0, 1), 2, 1),
+        ((1, 0), 1, 1),
+        # 1 variable encoded as a (3,1,p) QRAC (see issue #11)
+        ((0,), 0, 0),
+        ((1,), 1, 1),
+    )
+
+    for (m, basis, expected) in test_cases:
+        encoding = QuantumRandomAccessEncoding()
+        encoding._add_variables(list(range(len(m))))
+        circuit = encoding.state_prep(m).to_circuit()
+        result = mr.round(RoundingContext(encoding=encoding, circuit=circuit))
+        deterministic_dict = result.basis_counts[basis]
+        assert set(deterministic_dict) == set([str(expected)])
+
+
 if __name__ == "__main__":
     import sys
 

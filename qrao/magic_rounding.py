@@ -388,7 +388,7 @@ class MagicRounding(RoundingScheme):
         # We've already checked that it is one of these two in the constructor
         if self.basis_sampling == "uniform":
             bases, basis_shots = self._sample_bases_uniform(
-                ctx.q2vars, ctx.vars_per_qubit
+                ctx.q2vars, ctx._vars_per_qubit
             )
         elif self.basis_sampling == "weighted":
             if trace_values is None:
@@ -397,7 +397,7 @@ class MagicRounding(RoundingScheme):
                     "to be available, but they are not."
                 )
             bases, basis_shots = self._sample_bases_weighted(
-                ctx.q2vars, trace_values, ctx.vars_per_qubit
+                ctx.q2vars, trace_values, ctx._vars_per_qubit
             )
         else:  # pragma: no cover
             raise NotImplementedError(
@@ -410,12 +410,12 @@ class MagicRounding(RoundingScheme):
         # and return the circuit results
 
         basis_counts = self._evaluate_magic_bases(
-            circuit, bases, basis_shots, ctx.vars_per_qubit
+            circuit, bases, basis_shots, ctx._vars_per_qubit
         )
         # keys will be configurations of decision variables
         # values will be total number of observations.
         soln_counts = self._compute_dv_counts(
-            basis_counts, bases, ctx.var2op, ctx.vars_per_qubit
+            basis_counts, bases, ctx.var2op, ctx._vars_per_qubit
         )
 
         soln_samples = [

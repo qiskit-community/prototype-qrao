@@ -56,7 +56,7 @@ class RoundingContext:
                 raise ValueError("vars_per_qubit should not be provided if encoding is")
             self.var2op = encoding.var2op
             self.q2vars = encoding.q2vars
-            self.vars_per_qubit = encoding.max_vars_per_qubit
+            self._vars_per_qubit = encoding.max_vars_per_qubit
         else:
             if var2op is None:
                 raise ValueError("Either an encoding or var2ops must be provided")
@@ -66,7 +66,7 @@ class RoundingContext:
                 )
             self.var2op = var2op
             self.q2vars = q2vars_from_var2op(var2op) if q2vars is None else q2vars
-            self.vars_per_qubit = vars_per_qubit
+            self._vars_per_qubit = vars_per_qubit
 
         self.trace_values = trace_values  # TODO: rename me
         self.circuit = circuit  # TODO: rename me

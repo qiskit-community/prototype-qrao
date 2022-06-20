@@ -361,12 +361,7 @@ class MagicRounding(RoundingScheme):
                 # fmt: on
                 basis_probs.append([pp_mm, pm_mp])
             elif vars_per_qubit == 1:
-                z = 0.5 * (1 - tv[dvars[0]])
-                # p:   z±   = .5(I ± 1/sqrt(1)( Z ))
-                # fmt: off
-                p = z + (1 - z)
-                # fmt: on
-                basis_probs.append([p])
+                basis_probs.append([1.0])
         bases = [
             [
                 self.rng.choice(2 ** (vars_per_qubit - 1), p=probs)

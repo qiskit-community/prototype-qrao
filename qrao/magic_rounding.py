@@ -215,11 +215,16 @@ class MagicRounding(RoundingScheme):
     ) -> List[QuantumCircuit]:
         circuits = []
         for basis in bases:
-            qc = circ.copy()
             if vars_per_qubit == 3:
-                qc.compose(z_to_31p_qrac_basis_circuit(basis).inverse(), inplace=True)
+                qc = circ.compose(
+                    z_to_31p_qrac_basis_circuit(basis).inverse(), inplace=False
+                )
             elif vars_per_qubit == 2:
-                qc.compose(z_to_21p_qrac_basis_circuit(basis).inverse(), inplace=True)
+                qc = circ.compose(
+                    z_to_21p_qrac_basis_circuit(basis).inverse(), inplace=False
+                )
+            elif vars_per_qubit == 1:
+                qc = circ.copy()
             if measure:
                 qc.measure_all()
             circuits.append(qc)

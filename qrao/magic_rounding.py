@@ -194,8 +194,8 @@ class MagicRounding(RoundingScheme):
         # (assumes variables are numbered consecutively beginning with 0)
         for var in range(len(var2op)):  # pylint: disable=consider-using-enumerate
             q, op = var2op[var]
-            # get the index in [0,1,2] corresponding
-            # to each possible Pauli.
+            # get the decoding outcome index for the variable
+            # corresponding to this Pauli op.
             op_index = self._OP_INDICES[vars_per_qubit][str(op)]
             # get the bits associated to this magic basis'
             # measurement outcomes

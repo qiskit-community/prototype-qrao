@@ -50,7 +50,6 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
         samples: Optional[List[SolutionSample]],
         relaxed_results: MinimumEigensolverResult,
         rounding_results: RoundingResult,
-        relaxed_results_offset: float,
         sense: int,
     ) -> None:
         """
@@ -73,7 +72,6 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
         )
         self._relaxed_results = relaxed_results
         self._rounding_results = rounding_results
-        self._relaxed_results_offset = relaxed_results_offset
         assert sense in (-1, 1)
         self._sense = sense
 
@@ -101,9 +99,7 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
         ``QuadraticProgram`` represents a maximization problem, as it will be
         converted to a minimization problem when phrased as a Hamiltonian.
         """
-        return self._sense * (
-            self._relaxed_results_offset + self.relaxed_results.eigenvalue.real
-        )
+        return self._sense * self.relaxed_results.eigenvalue.real
 
     def __repr__(self) -> str:
         lines = (
@@ -285,6 +281,5 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             status=OptimizationResultStatus.SUCCESS,
             relaxed_results=relaxed_results,
             rounding_results=rounding_results,
-            relaxed_results_offset=self.encoding.offset,
             sense=problem.objective.sense.value,
         )

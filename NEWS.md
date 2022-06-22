@@ -1,3 +1,5 @@
+- 2022-06-21: Magic rounding now supports all available encodings.
+  ([#33])
 - 2022-06-17: Fixed a bug in the "weighted" sampling method for magic
   rounding.  Anyone who did experiments using weighted sampling
   previously might want to try it again, as results ought to be better
@@ -11,5 +13,6 @@
   `CplexOptimizer` in the first tutorial ([#27])
 
 [#27]: https://github.com/qiskit-community/prototype-qrao/pull/27
+[#33]: https://github.com/qiskit-community/prototype-qrao/pull/33
 [#34]: https://github.com/qiskit-community/prototype-qrao/pull/34
 [#40]: https://github.com/qiskit-community/prototype-qrao/pull/40

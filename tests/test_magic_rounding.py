@@ -100,7 +100,7 @@ class TestMagicRounding(unittest.TestCase):
                     trace_values=tv,
                     circuit=qrac_gate_circ,
                     var2op=var2op,
-                    vars_per_qubit=3,
+                    _vars_per_qubit=3,
                 )
                 rounding_res = magic.round(rounding_context)
                 self.assertEqual(rounding_res.samples[0].x.tolist(), list(m))
@@ -118,7 +118,7 @@ class TestMagicRounding(unittest.TestCase):
                     trace_values=tv,
                     circuit=qrac_sv_circ,
                     var2op=var2op,
-                    vars_per_qubit=3,
+                    _vars_per_qubit=3,
                 )
                 rounding_res = magic.round(rounding_context)
                 self.assertEqual(rounding_res.samples[0].x.tolist(), list(m))
@@ -256,11 +256,13 @@ class TestMagicRounding(unittest.TestCase):
         # Both trace values and a circuit must be provided
         with self.assertRaises(NotImplementedError):
             magic.round(
-                RoundingContext(trace_values=[1.0], var2op=var2op, vars_per_qubit=3)
+                RoundingContext(trace_values=[1.0], var2op=var2op, _vars_per_qubit=3)
             )
         with self.assertRaises(NotImplementedError):
             magic.round(
-                RoundingContext(circuit=self.gate_circ, var2op=var2op, vars_per_qubit=3)
+                RoundingContext(
+                    circuit=self.gate_circ, var2op=var2op, _vars_per_qubit=3
+                )
             )
 
     def test_sample_bases_uniform(self):
@@ -286,9 +288,9 @@ class TestMagicRounding(unittest.TestCase):
         # A circuit must be provided, but trace values need not be
         circuit = QuantumCircuit(1)
         circuit.h(0)
-        magic.round(RoundingContext(circuit=circuit, var2op=var2op, vars_per_qubit=3))
+        magic.round(RoundingContext(circuit=circuit, var2op=var2op, _vars_per_qubit=3))
         with self.assertRaises(NotImplementedError):
-            magic.round(RoundingContext(var2op=var2op, vars_per_qubit=3))
+            magic.round(RoundingContext(var2op=var2op, _vars_per_qubit=3))
 
 
 def test_unsupported_backend():
@@ -323,7 +325,7 @@ def test_magic_rounding_statevector_simulator():
     circ.h(1)
     circ.cx(0, 1)
     ctx = RoundingContext(
-        circuit=circ, trace_values=[1, 1, 1], var2op=var2op, vars_per_qubit=3
+        circuit=circ, trace_values=[1, 1, 1], var2op=var2op, _vars_per_qubit=3
     )
     res = magic.round(ctx)
     assert sum(s.probability for s in res.samples) == pytest.approx(1)
@@ -348,7 +350,7 @@ def test_noisy_quantuminstance():
     circuit = qrac_state_prep_1q(0, 1, 0).to_circuit()
     magic.round(
         RoundingContext(
-            trace_values=[1, 1, 1], var2op=var2op, circuit=circuit, vars_per_qubit=3
+            trace_values=[1, 1, 1], var2op=var2op, circuit=circuit, _vars_per_qubit=3
         )
     )
 
@@ -360,7 +362,7 @@ def test_magic_rounding_statistical():
     """
     shots = 1024
     mr = MagicRounding(
-        QuantumInstance(backend=Aer.get_backend("qasm_simulator"), shots=shots)
+        QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=shots)
     )
 
     test_cases = (

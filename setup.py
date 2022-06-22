@@ -33,7 +33,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=install_requires,
     python_requires=">=3.6",
-    setup_requires=["setuptools_scm"],
+    # The following line is pinned, else it fails on python 3.6
+    setup_requires=["setuptools_scm<7.0"],
     use_scm_version=True,
     classifiers=[
         "Development Status :: 4 - Beta",

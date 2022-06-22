@@ -362,7 +362,7 @@ def test_magic_rounding_statistical():
     """
     shots = 1024
     mr = MagicRounding(
-        QuantumInstance(backend=Aer.get_backend("qasm_simulator"), shots=shots)
+        QuantumInstance(backend=Aer.get_backend("aer_simulator"), shots=shots)
     )
 
     test_cases = (

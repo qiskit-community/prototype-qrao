@@ -386,7 +386,7 @@ def test_magic_rounding_statistical():
     )
 
     for (m, basis, expected) in test_cases:
-        encoding = QuantumRandomAccessEncoding(len(m))
+        encoding = QuantumRandomAccessEncoding()
         encoding._add_variables(list(range(len(m))))
         circuit = encoding.state_prep(m).to_circuit()
         result = mr.round(RoundingContext(encoding=encoding, circuit=circuit))

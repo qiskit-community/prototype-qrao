@@ -70,7 +70,7 @@ Python 3.6 or higher is required.  Full installation instructions are provided i
 
 ```sh
 $ git clone https://github.com/qiskit-community/prototype-qrao.git
-$ cd qrao
+$ cd prototype-qrao
 $ python3 -m venv venv
 $ source venv/bin/activate
 $ pip install tox notebook -e '.[notebook-dependencies]'

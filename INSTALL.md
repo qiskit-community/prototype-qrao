@@ -8,7 +8,7 @@ We assume that [git](https://git-scm.com/) is installed.  As a first step, clone
 
 ```sh
 $ git clone https://github.com/qiskit-community/prototype-qrao.git
-$ cd qrao
+$ cd prototype-qrao
 ```
 
 The remainder of this document will assume you are in the root directory of the repository.

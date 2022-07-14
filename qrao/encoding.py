@@ -449,6 +449,8 @@ class QuantumRandomAccessEncoding:
         # convert quadratic parts of the objective function into Hamiltonian.
         quad = np.zeros((num_vars, num_vars))
         for (i, j), coef in problem.objective.quadratic.to_dict().items():
+            assert isinstance(i, int)  # hint for mypy
+            assert isinstance(j, int)  # hint for mypy
             weight = coef * sense / 4
             if i == j:
                 linear[i] -= 2 * weight

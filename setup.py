@@ -21,7 +21,7 @@ with open("requirements.txt") as f:
     install_requires = f.read().splitlines()
 
 notebook_requirements = [
-    "cplex>=12.10",
+    "cplex>=12.10; platform_machine != 'arm64'",
     "tqdm[notebook]>=4.64",
 ]
 

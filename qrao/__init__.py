@@ -27,7 +27,11 @@ Quantum Random Access Optimization.
     utils
 """
 
-from importlib_metadata import version as metadata_version, PackageNotFoundError
+try:
+    from importlib.metadata import version as metadata_version, PackageNotFoundError
+except:
+    # Python <3.8 fallback
+    from importlib_metadata import version as metadata_version, PackageNotFoundError
 
 from .encoding import QuantumRandomAccessEncoding
 

@@ -20,7 +20,11 @@ Sphinx documentation builder
 from pathlib import Path
 import sys
 
-from importlib_metadata import version as metadata_version
+try:
+    from importlib.metadata import version as metadata_version
+except ImportError:
+    # Python <3.8 fallback
+    from importlib_metadata import version as metadata_version
 
 project = "Quantum Random Access Optimization"
 copyright = "2022"  # pylint: disable=redefined-builtin

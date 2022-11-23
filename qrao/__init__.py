@@ -45,7 +45,7 @@ from .quantum_random_access_optimizer import (
 
 
 try:
-    __version__ = metadata_version("prototype_template")
+    __version__ = metadata_version("qrao")
 except PackageNotFoundError:  # pragma: no cover
     # package is not installed
     pass

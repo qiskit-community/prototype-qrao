@@ -18,7 +18,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-20.04]
         python-version: [3.6, '3.10']
         include:
           - os: macos-latest

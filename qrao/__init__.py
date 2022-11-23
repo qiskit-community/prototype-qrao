@@ -29,7 +29,7 @@ Quantum Random Access Optimization.
 
 try:
     from importlib.metadata import version as metadata_version, PackageNotFoundError
-except:
+except ImportError:
     # Python <3.8 fallback
     from importlib_metadata import version as metadata_version, PackageNotFoundError
 

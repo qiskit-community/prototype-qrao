@@ -16,12 +16,13 @@ import pytest
 
 from docplex.mp.model import Model
 
-from qiskit import Aer, BasicAer, IBMQ
 from qiskit.providers.ibmq import least_busy, IBMQAccountError
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigen_solvers import VQE
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.algorithms.optimizers import SPSA
+from qiskit import BasicAer, IBMQ
+from qiskit_aer import Aer
 from qiskit_optimization.algorithms import OptimizationResultStatus
 from qiskit_optimization.translators import from_docplex_mp
 

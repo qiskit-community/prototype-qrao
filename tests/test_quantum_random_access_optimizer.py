@@ -14,7 +14,6 @@
 
 from unittest import TestCase
 
-from qiskit import Aer
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigen_solvers import (
     VQE,
@@ -24,6 +23,7 @@ from qiskit.algorithms.minimum_eigen_solvers import (
 )
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.algorithms.optimizers import SPSA
+from qiskit_aer import Aer
 
 from qiskit_optimization.translators import from_docplex_mp
 from docplex.mp.model import Model

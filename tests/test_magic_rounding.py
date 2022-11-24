@@ -20,8 +20,7 @@ import pytest
 import numpy as np
 from docplex.mp.model import Model
 
-from qiskit import Aer, QuantumCircuit
-from qiskit.providers.aer import noise
+from qiskit import QuantumCircuit
 from qiskit.utils import QuantumInstance
 from qiskit.opflow import (
     StateFn,
@@ -29,6 +28,7 @@ from qiskit.opflow import (
     Y,
     Z,
 )
+from qiskit_aer import Aer, noise
 
 from qiskit_optimization.translators import from_docplex_mp
 

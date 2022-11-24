@@ -16,15 +16,15 @@ import pytest
 
 from docplex.mp.model import Model
 
-from qiskit.providers.ibmq import least_busy, IBMQAccountError
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigen_solvers import VQE
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.algorithms.optimizers import SPSA
-from qiskit import BasicAer, IBMQ
+from qiskit import BasicAer
 from qiskit_aer import Aer
 from qiskit_optimization.algorithms import OptimizationResultStatus
 from qiskit_optimization.translators import from_docplex_mp
+from qiskit_ibm_provider import IBMProvider, least_busy, IBMAccountError
 
 from qrao import (
     QuantumRandomAccessOptimizer,
@@ -109,14 +109,15 @@ def test_backend(relaxed_backend, rounding_backend, my_encoding, my_ansatz, shot
 def test_magic_rounding_on_hardware_backend(my_encoding, my_ansatz):
     """Test *magic rounding* on a hardware backend, if available."""
     try:
-        provider = IBMQ.load_account()
-    except IBMQAccountError:
+        provider = IBMProvider()
+    except IBMAccountError:
         pytest.skip("No hardware backend available")
     print(f"Encoding requires {my_encoding.num_qubits} qubits")
     backend = least_busy(
         provider.backends(
-            filters=lambda x: x.configuration().n_qubits >= my_encoding.num_qubits,
+            min_num_qubits=my_encoding.num_qubits,
             simulator=False,
+            operational=True,
         )
     )
     print(f"Using backend: {backend}")

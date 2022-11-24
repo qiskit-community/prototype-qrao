@@ -31,7 +31,7 @@ from functools import reduce
 from itertools import chain
 
 import numpy as np
-import retworkx as rx
+import rustworkx as rx
 
 from qiskit import QuantumCircuit
 from qiskit.opflow import (

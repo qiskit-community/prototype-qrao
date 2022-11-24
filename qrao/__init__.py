@@ -49,3 +49,17 @@ try:
 except PackageNotFoundError:  # pragma: no cover
     # package is not installed
     pass
+
+
+__all__ = [
+    "QuantumRandomAccessEncoding",
+    "RoundingScheme",
+    "RoundingContext",
+    "RoundingResult",
+    "SemideterministicRounding",
+    "SemideterministicRoundingResult",
+    "MagicRounding",
+    "MagicRoundingResult",
+    "QuantumRandomAccessOptimizer",
+    "QuantumRandomAccessOptimizationResult",
+]

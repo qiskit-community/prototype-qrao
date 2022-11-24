@@ -28,10 +28,10 @@ Quantum Random Access Optimization.
 """
 
 try:
-    from importlib.metadata import version as metadata_version, PackageNotFoundError
+    from importlib.metadata import version as metadata_version, PackageNotFoundError  # type: ignore
 except ImportError:
     # Python <3.8 fallback
-    from importlib_metadata import version as metadata_version, PackageNotFoundError
+    from importlib_metadata import version as metadata_version, PackageNotFoundError  # type: ignore
 
 from .encoding import QuantumRandomAccessEncoding
 

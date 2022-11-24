@@ -16,11 +16,12 @@ import pytest
 
 from docplex.mp.model import Model
 
-from qiskit import Aer, BasicAer
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigen_solvers import VQE
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.algorithms.optimizers import SPSA
+from qiskit import BasicAer, IBMQ
+from qiskit_aer import Aer
 from qiskit_optimization.algorithms import OptimizationResultStatus
 from qiskit_optimization.translators import from_docplex_mp
 from qiskit_ibm_provider import IBMProvider, least_busy, IBMAccountError
@@ -30,6 +31,8 @@ from qrao import (
     QuantumRandomAccessEncoding,
     MagicRounding,
 )
+
+# pylint: disable=redefined-outer-name
 
 # TODO:
 # - update these tests to include solution checking once behavior can be made
@@ -53,6 +56,7 @@ backends = [
 
 @pytest.fixture(scope="module")
 def my_encoding():
+    """Fixture to construct ``my_encoding`` for use in this file"""
     # Load small reference problem
     elist = [(0, 1), (0, 4), (0, 3), (1, 2), (1, 5), (2, 3), (2, 4), (4, 5), (5, 3)]
     num_nodes = 6
@@ -68,6 +72,7 @@ def my_encoding():
 
 @pytest.fixture(scope="module")
 def my_ansatz(my_encoding):
+    """Fixture to construct ``my_ansatz`` for use in this file"""
     return RealAmplitudes(my_encoding.num_qubits)
 
 
@@ -79,6 +84,8 @@ def my_ansatz(my_encoding):
 )  # ignore magic rounding's UserWarning when using statevector_simulator
 @pytest.mark.backend
 def test_backend(relaxed_backend, rounding_backend, my_encoding, my_ansatz, shots=3):
+    """Smoke test of each backend combination"""
+
     def cb(f, *args):
         "Construct backend"
         return f(*args)

@@ -1,7 +1,8 @@
 certifi>=2021.5.30
-importlib_metadata>=4.8.1
-qiskit-terra>=0.19.2
-qiskit-aer>=0.10.3
-qiskit-ibm-provider
-qiskit-optimization>=0.3.0
-matplotlib>=3.0.0
+importlib_metadata>=4.8.1,!=5.0.0
+qiskit-terra>=0.21.0
+qiskit-aer>=0.11.0
+qiskit-ibm-provider>=0.1.0
+qiskit-optimization>=0.4.0
+retworkx>=0.11.0
+matplotlib>=3.0.1

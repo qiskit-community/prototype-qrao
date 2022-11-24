@@ -3,8 +3,8 @@
 The documentation in this project is organized into four types according to the [Diátaxis framework].
 
 - [Tutorials](tutorials/)
-- [How-to guides](how_tos/) (coming soon)
-- Reference ([Sphinx](https://www.sphinx-doc.org/en/master/) build of the API reference is coming soon; for now, see docstrings [in `.py` source files](../qrao))
+- [How-to guides](how_tos/)
+- [API Reference](https://qiskit-community.github.io/prototype-qrao/apidocs/)
 - [Explanation](background/) (background material on using quantum random access codes (QRACs) to solve optimization problems)
 
 [Diátaxis framework]: https://diataxis.fr/

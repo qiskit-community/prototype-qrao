@@ -14,9 +14,6 @@
 
 from unittest import TestCase
 
-import numpy as np
-
-from qiskit import Aer
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigen_solvers import (
     VQE,
@@ -26,6 +23,7 @@ from qiskit.algorithms.minimum_eigen_solvers import (
 )
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.algorithms.optimizers import SPSA
+from qiskit_aer import Aer
 
 from qiskit_optimization.translators import from_docplex_mp
 from docplex.mp.model import Model
@@ -158,9 +156,11 @@ class TestQuantumRandomAccessOptimizer(TestCase):
             rounding_scheme=rounding_scheme,
         )
         results = qrao.solve()
-        self.assertIsNot(results.samples[0].fval, np.nan)
+        self.assertIsInstance(results.samples[0].fval, float)
         self.assertIsInstance(results.relaxed_results, MinimumEigensolverResult)
         self.assertIsInstance(results.rounding_results, RoundingResult)
+        self.assertIsInstance(results.relaxed_fval, float)
+        self.assertIsInstance(repr(results), str)
 
     def test_empty_encoding(self):
         """Test that an exception is raised if the encoding has no qubits"""

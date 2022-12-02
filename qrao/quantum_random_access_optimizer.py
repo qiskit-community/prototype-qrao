@@ -90,7 +90,7 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
     @property
     def trace_values(self):
         """List of expectation values, one corresponding to each decision variable"""
-        trace_values = [v[0] for v in self._relaxed_results.aux_operator_eigenvalues]
+        trace_values = [v[0] for v in self._relaxed_results.aux_operators_evaluated]
         return trace_values
 
     @property
@@ -202,7 +202,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         stop_time_relaxed = time.time()
         relaxed_results.time_taken = stop_time_relaxed - start_time_relaxed
 
-        trace_values = [v[0] for v in relaxed_results.aux_operator_eigenvalues]
+        trace_values = [v[0] for v in relaxed_results.aux_operators_evaluated]
 
         # Collect inputs for rounding
         # double check later that there's no funny business with the

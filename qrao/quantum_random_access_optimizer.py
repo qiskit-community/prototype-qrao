@@ -37,6 +37,16 @@ from .rounding_common import RoundingScheme, RoundingContext, RoundingResult
 from .semideterministic_rounding import SemideterministicRounding
 
 
+def _get_aux_operators_evaluated(relaxed_results):
+    try:
+        # Must the using the new "minimum_eigensolvers"
+        # https://github.com/Qiskit/qiskit-terra/blob/main/releasenotes/notes/0.22/add-eigensolvers-with-primitives-8b3a9f55f5fd285f.yaml
+        return relaxed_results.aux_operators_evaluated
+    except AttributeError:
+        # Must be using the old (deprecated) "minimum_eigen_solvers"
+        return relaxed_results.aux_operator_eigenvalues
+
+
 class QuantumRandomAccessOptimizationResult(OptimizationResult):
     """Result of Quantum Random Access Optimization procedure."""
 
@@ -90,7 +100,9 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
     @property
     def trace_values(self):
         """List of expectation values, one corresponding to each decision variable"""
-        trace_values = [v[0] for v in self._relaxed_results.aux_operators_evaluated]
+        trace_values = [
+            v[0] for v in _get_aux_operators_evaluated(self._relaxed_results)
+        ]
         return trace_values
 
     @property
@@ -202,7 +214,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         stop_time_relaxed = time.time()
         relaxed_results.time_taken = stop_time_relaxed - start_time_relaxed
 
-        trace_values = [v[0] for v in relaxed_results.aux_operators_evaluated]
+        trace_values = [v[0] for v in _get_aux_operators_evaluated(relaxed_results)]
 
         # Collect inputs for rounding
         # double check later that there's no funny business with the

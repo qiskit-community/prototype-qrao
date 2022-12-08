@@ -17,13 +17,12 @@ from unittest import TestCase
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigensolvers import (
     VQE,
-    QAOA,
     NumPyMinimumEigensolver,
     MinimumEigensolverResult,
 )
-from qiskit.circuit.library import RealAmplitudes
+from qiskit.circuit.library import RealAmplitudes, QAOAAnsatz
 from qiskit.algorithms.optimizers import SPSA
-from qiskit.primitives import Estimator, Sampler
+from qiskit.primitives import Estimator
 from qiskit_aer import Aer
 
 from qiskit_optimization.translators import from_docplex_mp
@@ -68,11 +67,15 @@ class TestQuantumRandomAccessOptimizer(TestCase):
 
     def test_solve_relaxed_qaoa(self):
         """Test QuantumRandomAccessOptimizer with QAOA."""
-        sampler = Sampler(options={"shots": 100})
-        qaoa = QAOA(
+        estimator = Estimator(options={"shots": 100})
+        qaoa_ansatz = QAOAAnsatz(
+            cost_operator=self.encoding.qubit_op,
+            mixer_operator=self.encoding.qubit_op,
+        )
+        qaoa = VQE(
+            ansatz=qaoa_ansatz,
             optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
-            sampler=sampler,
-            mixer=self.encoding.qubit_op,
+            estimator=estimator,
         )
         qrao = QuantumRandomAccessOptimizer(
             encoding=self.encoding, min_eigen_solver=qaoa

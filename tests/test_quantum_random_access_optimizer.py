@@ -22,6 +22,8 @@ from qiskit.algorithms.minimum_eigensolvers import (
     MinimumEigensolverResult,
 )
 from qiskit.algorithms.minimum_eigen_solvers import (
+    VQE as LegacyVQE,
+    QAOA as LegacyQAOA,
     NumPyMinimumEigensolver as LegacyNumPyMinimumEigensolver,
     MinimumEigensolverResult as LegacyMinimumEigensolverResult,
 )
@@ -70,6 +72,25 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         self.assertIsInstance(relaxed_results, MinimumEigensolverResult)
         self.assertIsInstance(rounding_context, RoundingContext)
 
+    @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+    def test_solve_relaxed_legacy_vqe(self):
+        """Test QuantumRandomAccessOptimizer with legacy VQE."""
+        relaxed_qi = QuantumInstance(
+            backend=Aer.get_backend("aer_simulator"), shots=100
+        )
+        vqe = LegacyVQE(
+            ansatz=self.ansatz,
+            optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
+            quantum_instance=relaxed_qi,
+        )
+
+        qrao = QuantumRandomAccessOptimizer(
+            encoding=self.encoding, min_eigen_solver=vqe
+        )
+        relaxed_results, rounding_context = qrao.solve_relaxed()
+        self.assertIsInstance(relaxed_results, LegacyMinimumEigensolverResult)
+        self.assertIsInstance(rounding_context, RoundingContext)
+
     def test_solve_relaxed_qaoa(self):
         """Test QuantumRandomAccessOptimizer with QAOA."""
         estimator = Estimator(options={"shots": 100})
@@ -86,6 +107,24 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         )
         relaxed_results, rounding_context = qrao.solve_relaxed()
         self.assertIsInstance(relaxed_results, MinimumEigensolverResult)
+        self.assertIsInstance(rounding_context, RoundingContext)
+
+    @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+    def test_solve_relaxed_legacy_qaoa(self):
+        """Test QuantumRandomAccessOptimizer with legacy QAOA."""
+        relaxed_qi = QuantumInstance(
+            backend=Aer.get_backend("aer_simulator"), shots=100
+        )
+        qaoa = LegacyQAOA(
+            optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
+            quantum_instance=relaxed_qi,
+            mixer=self.encoding.qubit_op,
+        )
+        qrao = QuantumRandomAccessOptimizer(
+            encoding=self.encoding, min_eigen_solver=qaoa
+        )
+        relaxed_results, rounding_context = qrao.solve_relaxed()
+        self.assertIsInstance(relaxed_results, LegacyMinimumEigensolverResult)
         self.assertIsInstance(rounding_context, RoundingContext)
 
     def test_solve_relaxed_numpy(self):

@@ -70,7 +70,6 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         estimator = Estimator(options={"shots": 100})
         qaoa_ansatz = QAOAAnsatz(
             cost_operator=self.encoding.qubit_op,
-            mixer_operator=self.encoding.qubit_op,
         )
         qaoa = VQE(
             ansatz=qaoa_ansatz,

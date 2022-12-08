@@ -18,11 +18,17 @@ import time
 import numpy as np
 
 from qiskit import QuantumCircuit
-from qiskit.algorithms import (
+from qiskit.algorithms.minimum_eigensolvers import (
     MinimumEigensolver,
     MinimumEigensolverResult,
     NumPyMinimumEigensolver,
 )
+from qiskit.algorithms.minimum_eigen_solvers import (
+    MinimumEigensolver as LegacyMinimumEigensolver,
+    MinimumEigensolverResult as LegacyMinimumEigensolverResult,
+    NumPyMinimumEigensolver as LegacyNumPyMinimumEigensolver,
+)
+from qiskit.opflow import StateFn
 
 from qiskit_optimization.algorithms import (
     OptimizationAlgorithm,
@@ -58,7 +64,9 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
         variables: List[Variable],
         status: OptimizationResultStatus,
         samples: Optional[List[SolutionSample]],
-        relaxed_results: MinimumEigensolverResult,
+        relaxed_results: Union[
+            MinimumEigensolverResult, LegacyMinimumEigensolverResult
+        ],
         rounding_results: RoundingResult,
         relaxed_results_offset: float,
         sense: int,
@@ -88,7 +96,9 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
         self._sense = sense
 
     @property
-    def relaxed_results(self) -> MinimumEigensolverResult:
+    def relaxed_results(
+        self,
+    ) -> Union[MinimumEigensolverResult, LegacyMinimumEigensolverResult]:
         """Variationally obtained ground state of the relaxed Hamiltonian"""
         return self._relaxed_results
 
@@ -132,7 +142,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
 
     def __init__(
         self,
-        min_eigen_solver: MinimumEigensolver,
+        min_eigen_solver: Union[MinimumEigensolver, LegacyMinimumEigensolver],
         encoding: QuantumRandomAccessEncoding,
         rounding_scheme: Optional[RoundingScheme] = None,
     ):
@@ -156,12 +166,14 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         self.rounding_scheme = rounding_scheme
 
     @property
-    def min_eigen_solver(self) -> MinimumEigensolver:
+    def min_eigen_solver(self) -> Union[MinimumEigensolver, LegacyMinimumEigensolver]:
         """The minimum eigensolver."""
         return self._min_eigen_solver
 
     @min_eigen_solver.setter
-    def min_eigen_solver(self, min_eigen_solver: MinimumEigensolver) -> None:
+    def min_eigen_solver(
+        self, min_eigen_solver: Union[MinimumEigensolver, LegacyMinimumEigensolver]
+    ) -> None:
         """Set the minimum eigensolver."""
         if not min_eigen_solver.supports_aux_operators():
             raise TypeError(
@@ -196,7 +208,11 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             )
         return ""
 
-    def solve_relaxed(self) -> Tuple[MinimumEigensolverResult, RoundingContext]:
+    def solve_relaxed(
+        self,
+    ) -> Tuple[
+        Union[MinimumEigensolverResult, LegacyMinimumEigensolverResult], RoundingContext
+    ]:
         """Solve the relaxed Hamiltonian given the ``encoding`` provided to the constructor."""
         # Get the ordered list of operators that correspond to each decision
         # variable.  This line assumes the variables are numbered consecutively
@@ -230,10 +246,17 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             circuit = self.min_eigen_solver.ansatz.bind_parameters(
                 relaxed_results.optimal_point
             )
-        elif isinstance(self.min_eigen_solver, NumPyMinimumEigensolver):
+        elif isinstance(
+            self.min_eigen_solver,
+            (NumPyMinimumEigensolver, LegacyNumPyMinimumEigensolver),
+        ):
             statevector = relaxed_results.eigenstate
+            if isinstance(statevector, StateFn):
+                # This code path is triggered only with using
+                # LegacyNumPyMinimumEigensolver
+                statevector = statevector.primitive
             circuit = QuantumCircuit(self.encoding.num_qubits)
-            circuit.initialize(statevector.primitive)
+            circuit.initialize(statevector)
         else:
             circuit = None
 

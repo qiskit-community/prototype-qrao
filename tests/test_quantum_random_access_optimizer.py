@@ -13,12 +13,17 @@
 """Tests for QuantumRandomAccessOptimizer."""
 
 from unittest import TestCase
+import pytest
 
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms.minimum_eigensolvers import (
     VQE,
     NumPyMinimumEigensolver,
     MinimumEigensolverResult,
+)
+from qiskit.algorithms.minimum_eigen_solvers import (
+    NumPyMinimumEigensolver as LegacyNumPyMinimumEigensolver,
+    MinimumEigensolverResult as LegacyMinimumEigensolverResult,
 )
 from qiskit.circuit.library import RealAmplitudes, QAOAAnsatz
 from qiskit.algorithms.optimizers import SPSA
@@ -91,6 +96,17 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         )
         relaxed_results, rounding_context = qrao.solve_relaxed()
         self.assertIsInstance(relaxed_results, MinimumEigensolverResult)
+        self.assertIsInstance(rounding_context, RoundingContext)
+
+    @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+    def test_solve_relaxed_legacy_numpy(self):
+        """Test QuantumRandomAccessOptimizer with legacy NumPyMinimumEigensolver."""
+        np_solver = LegacyNumPyMinimumEigensolver()
+        qrao = QuantumRandomAccessOptimizer(
+            encoding=self.encoding, min_eigen_solver=np_solver
+        )
+        relaxed_results, rounding_context = qrao.solve_relaxed()
+        self.assertIsInstance(relaxed_results, LegacyMinimumEigensolverResult)
         self.assertIsInstance(rounding_context, RoundingContext)
 
     def test_different_problem(self):

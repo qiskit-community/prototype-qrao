@@ -39,7 +39,6 @@ from qiskit.opflow import (
     X,
     Y,
     Z,
-    PauliOp,
     PauliSumOp,
     PrimitiveOp,
     CircuitOp,
@@ -48,6 +47,7 @@ from qiskit.opflow import (
     StateFn,
     CircuitStateFn,
 )
+from qiskit.quantum_info import SparsePauliOp
 
 from qiskit_optimization.problems.quadratic_program import QuadraticProgram
 
@@ -278,7 +278,7 @@ class QuantumRandomAccessEncoding:
             raise ValueError("max_vars_per_qubit must be 1, 2, or 3")
         self._ops = self.OPERATORS[max_vars_per_qubit - 1]
 
-        self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
+        self._qubit_op: Optional[PauliSumOp] = None
         self._offset: Optional[float] = None
         self._problem: Optional[QuadraticProgram] = None
         self._var2op: Dict[int, Tuple[int, PrimitiveOp]] = {}
@@ -329,7 +329,7 @@ class QuantumRandomAccessEncoding:
         return (1 + 1 / np.sqrt(n)) / 2
 
     @property
-    def qubit_op(self) -> Union[PauliOp, PauliSumOp]:
+    def qubit_op(self) -> PauliSumOp:
         """Relaxed Hamiltonian operator"""
         if self._qubit_op is None:
             raise AttributeError(
@@ -400,7 +400,7 @@ class QuantumRandomAccessEncoding:
         # Pauli operator.  To generalize, we replace the `d` in that equation
         # with `d_prime`, defined as follows:
         d_prime = np.sqrt(self.max_vars_per_qubit) ** len(variables)
-        op = w * d_prime * self.term2op(*variables)
+        op = self.term2op(*variables).mul(w * d_prime)
         # We perform the following short-circuit *after* calling term2op so at
         # least we have confirmed that the user provided a valid variables list.
         if w == 0.0:
@@ -410,8 +410,8 @@ class QuantumRandomAccessEncoding:
         else:
             self._qubit_op += op
 
-    def term2op(self, *variables: int) -> PauliOp:
-        """Construct a ``PauliOp`` that is a product of encoded decision ``variable``\\(s).
+    def term2op(self, *variables: int) -> PauliSumOp:
+        """Construct a ``PauliSumOp`` that is a product of encoded decision ``variable``\\(s).
 
         The decision variables provided must all be encoded on different qubits.
         """
@@ -423,7 +423,9 @@ class QuantumRandomAccessEncoding:
                 raise RuntimeError(f"Collision of variables: {variables}")
             ops[pos] = op
             done.add(pos)
-        return reduce(lambda x, y: x ^ y, ops)
+        pauli_op = reduce(lambda x, y: x ^ y, ops)
+        # Convert from PauliOp to PauliSumOp
+        return PauliSumOp(SparsePauliOp(pauli_op.primitive, coeffs=[pauli_op.coeff]))
 
     @staticmethod
     def _generate_ising_terms(

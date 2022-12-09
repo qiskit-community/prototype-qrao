@@ -13,16 +13,23 @@
 """Tests for QuantumRandomAccessOptimizer."""
 
 from unittest import TestCase
+import pytest
 
 from qiskit.utils import QuantumInstance
-from qiskit.algorithms.minimum_eigen_solvers import (
+from qiskit.algorithms.minimum_eigensolvers import (
     VQE,
-    QAOA,
     NumPyMinimumEigensolver,
     MinimumEigensolverResult,
 )
-from qiskit.circuit.library import RealAmplitudes
+from qiskit.algorithms.minimum_eigen_solvers import (
+    VQE as LegacyVQE,
+    QAOA as LegacyQAOA,
+    NumPyMinimumEigensolver as LegacyNumPyMinimumEigensolver,
+    MinimumEigensolverResult as LegacyMinimumEigensolverResult,
+)
+from qiskit.circuit.library import RealAmplitudes, QAOAAnsatz
 from qiskit.algorithms.optimizers import SPSA
+from qiskit.primitives import Estimator
 from qiskit_aer import Aer
 
 from qiskit_optimization.translators import from_docplex_mp
@@ -50,14 +57,12 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         self.ansatz = RealAmplitudes(self.encoding.num_qubits)  # for VQE
 
     def test_solve_relaxed_vqe(self):
-        """Test QuantumRandomAccessOptimizer."""
-        relaxed_qi = QuantumInstance(
-            backend=Aer.get_backend("aer_simulator"), shots=100
-        )
+        """Test QuantumRandomAccessOptimizer with VQE."""
+        estimator = Estimator(options={"shots": 100})
         vqe = VQE(
             ansatz=self.ansatz,
             optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
-            quantum_instance=relaxed_qi,
+            estimator=estimator,
         )
 
         qrao = QuantumRandomAccessOptimizer(
@@ -67,15 +72,35 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         self.assertIsInstance(relaxed_results, MinimumEigensolverResult)
         self.assertIsInstance(rounding_context, RoundingContext)
 
-    def test_solve_relaxed_qaoa(self):
-        """Test QuantumRandomAccessOptimizer."""
+    @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+    def test_solve_relaxed_legacy_vqe(self):
+        """Test QuantumRandomAccessOptimizer with legacy VQE."""
         relaxed_qi = QuantumInstance(
             backend=Aer.get_backend("aer_simulator"), shots=100
         )
-        qaoa = QAOA(
+        vqe = LegacyVQE(
+            ansatz=self.ansatz,
             optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
             quantum_instance=relaxed_qi,
-            mixer=self.encoding.qubit_op,
+        )
+
+        qrao = QuantumRandomAccessOptimizer(
+            encoding=self.encoding, min_eigen_solver=vqe
+        )
+        relaxed_results, rounding_context = qrao.solve_relaxed()
+        self.assertIsInstance(relaxed_results, LegacyMinimumEigensolverResult)
+        self.assertIsInstance(rounding_context, RoundingContext)
+
+    def test_solve_relaxed_qaoa(self):
+        """Test QuantumRandomAccessOptimizer with QAOA."""
+        estimator = Estimator(options={"shots": 100})
+        qaoa_ansatz = QAOAAnsatz(
+            cost_operator=self.encoding.qubit_op,
+        )
+        qaoa = VQE(
+            ansatz=qaoa_ansatz,
+            optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
+            estimator=estimator,
         )
         qrao = QuantumRandomAccessOptimizer(
             encoding=self.encoding, min_eigen_solver=qaoa
@@ -84,14 +109,43 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         self.assertIsInstance(relaxed_results, MinimumEigensolverResult)
         self.assertIsInstance(rounding_context, RoundingContext)
 
+    @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+    def test_solve_relaxed_legacy_qaoa(self):
+        """Test QuantumRandomAccessOptimizer with legacy QAOA."""
+        relaxed_qi = QuantumInstance(
+            backend=Aer.get_backend("aer_simulator"), shots=100
+        )
+        qaoa = LegacyQAOA(
+            optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
+            quantum_instance=relaxed_qi,
+            mixer=self.encoding.qubit_op,
+        )
+        qrao = QuantumRandomAccessOptimizer(
+            encoding=self.encoding, min_eigen_solver=qaoa
+        )
+        relaxed_results, rounding_context = qrao.solve_relaxed()
+        self.assertIsInstance(relaxed_results, LegacyMinimumEigensolverResult)
+        self.assertIsInstance(rounding_context, RoundingContext)
+
     def test_solve_relaxed_numpy(self):
-        """Test QuantumRandomAccessOptimizer."""
+        """Test QuantumRandomAccessOptimizer with NumPyMinimumEigensolver."""
         np_solver = NumPyMinimumEigensolver()
         qrao = QuantumRandomAccessOptimizer(
             encoding=self.encoding, min_eigen_solver=np_solver
         )
         relaxed_results, rounding_context = qrao.solve_relaxed()
         self.assertIsInstance(relaxed_results, MinimumEigensolverResult)
+        self.assertIsInstance(rounding_context, RoundingContext)
+
+    @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+    def test_solve_relaxed_legacy_numpy(self):
+        """Test QuantumRandomAccessOptimizer with legacy NumPyMinimumEigensolver."""
+        np_solver = LegacyNumPyMinimumEigensolver()
+        qrao = QuantumRandomAccessOptimizer(
+            encoding=self.encoding, min_eigen_solver=np_solver
+        )
+        relaxed_results, rounding_context = qrao.solve_relaxed()
+        self.assertIsInstance(relaxed_results, LegacyMinimumEigensolverResult)
         self.assertIsInstance(rounding_context, RoundingContext)
 
     def test_different_problem(self):
@@ -123,22 +177,18 @@ class TestQuantumRandomAccessOptimizer(TestCase):
             def supports_aux_operators(cls) -> bool:
                 return False
 
-        relaxed_qi = QuantumInstance(
-            backend=Aer.get_backend("aer_simulator"), shots=100
-        )
+        estimator = Estimator(options={"shots": 100})
         vqe = ModifiedVQE(
             ansatz=self.ansatz,
             optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
-            quantum_instance=relaxed_qi,
+            estimator=estimator,
         )
         with self.assertRaises(TypeError):
             QuantumRandomAccessOptimizer(encoding=self.encoding, min_eigen_solver=vqe)
 
     def test_solve_without_args(self):
         """Test solve() without arguments"""
-        relaxed_qi = QuantumInstance(
-            backend=Aer.get_backend("aer_simulator_statevector"), shots=100
-        )
+        estimator = Estimator(options={"shots": 100})
         rounding_qi = QuantumInstance(
             backend=Aer.get_backend("aer_simulator"), shots=100
         )
@@ -146,7 +196,7 @@ class TestQuantumRandomAccessOptimizer(TestCase):
         vqe = VQE(
             ansatz=self.ansatz,
             optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
-            quantum_instance=relaxed_qi,
+            estimator=estimator,
         )
         rounding_scheme = MagicRounding(quantum_instance=rounding_qi)
 
@@ -164,13 +214,11 @@ class TestQuantumRandomAccessOptimizer(TestCase):
 
     def test_empty_encoding(self):
         """Test that an exception is raised if the encoding has no qubits"""
-        relaxed_qi = QuantumInstance(
-            backend=Aer.get_backend("aer_simulator_statevector"), shots=100
-        )
+        estimator = Estimator(options={"shots": 100})
         vqe = VQE(
             ansatz=self.ansatz,
             optimizer=SPSA(maxiter=1, learning_rate=0.01, perturbation=0.1),
-            quantum_instance=relaxed_qi,
+            estimator=estimator,
         )
         encoding = QuantumRandomAccessEncoding(3)
         with self.assertRaises(ValueError):

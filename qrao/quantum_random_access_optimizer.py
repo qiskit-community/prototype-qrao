@@ -44,7 +44,7 @@ from .semideterministic_rounding import SemideterministicRounding
 
 def _get_aux_operators_evaluated(relaxed_results):
     try:
-        # Must the using the new "minimum_eigensolvers"
+        # Must be using the new "minimum_eigensolvers"
         # https://github.com/Qiskit/qiskit-terra/blob/main/releasenotes/notes/0.22/add-eigensolvers-with-primitives-8b3a9f55f5fd285f.yaml
         return relaxed_results.aux_operators_evaluated
     except AttributeError:

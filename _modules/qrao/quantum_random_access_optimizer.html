@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>qrao.quantum_random_access_optimizer &#8212; Quantum Random Access Optimization 0.1.dev1+g740e233 documentation</title>
+    <title>qrao.quantum_random_access_optimizer &#8212; Quantum Random Access Optimization 0.1.dev1+gbb6bd61 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/jupyter-sphinx.css" />
@@ -59,10 +59,15 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span> <span class="nn">qiskit.algorithms</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">qiskit.algorithms.minimum_eigensolvers</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">MinimumEigensolver</span><span class="p">,</span>
     <span class="n">MinimumEigensolverResult</span><span class="p">,</span>
     <span class="n">NumPyMinimumEigensolver</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qiskit.algorithms.minimum_eigen_solvers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">MinimumEigensolver</span> <span class="k">as</span> <span class="n">LegacyMinimumEigensolver</span><span class="p">,</span>
+    <span class="n">MinimumEigensolverResult</span> <span class="k">as</span> <span class="n">LegacyMinimumEigensolverResult</span><span class="p">,</span>
+    <span class="n">NumPyMinimumEigensolver</span> <span class="k">as</span> <span class="n">LegacyNumPyMinimumEigensolver</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">qiskit_optimization.algorithms</span> <span class="kn">import</span> <span class="p">(</span>
@@ -78,6 +83,16 @@
 <span class="kn">from</span> <span class="nn">.semideterministic_rounding</span> <span class="kn">import</span> <span class="n">SemideterministicRounding</span>
 
 
+<span class="k">def</span> <span class="nf">_get_aux_operators_evaluated</span><span class="p">(</span><span class="n">relaxed_results</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Must be using the new &quot;minimum_eigensolvers&quot;</span>
+        <span class="c1"># https://github.com/Qiskit/qiskit-terra/blob/main/releasenotes/notes/0.22/add-eigensolvers-with-primitives-8b3a9f55f5fd285f.yaml</span>
+        <span class="k">return</span> <span class="n">relaxed_results</span><span class="o">.</span><span class="n">aux_operators_evaluated</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="c1"># Must be using the old (deprecated) &quot;minimum_eigen_solvers&quot;</span>
+        <span class="k">return</span> <span class="n">relaxed_results</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span>
+
+
 <span class="k">class</span> <span class="nc">QuantumRandomAccessOptimizationResult</span><span class="p">(</span><span class="n">OptimizationResult</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Result of Quantum Random Access Optimization procedure.&quot;&quot;&quot;</span>
 
@@ -89,7 +104,9 @@
         <span class="n">variables</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">],</span>
         <span class="n">status</span><span class="p">:</span> <span class="n">OptimizationResultStatus</span><span class="p">,</span>
         <span class="n">samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">SolutionSample</span><span class="p">]],</span>
-        <span class="n">relaxed_results</span><span class="p">:</span> <span class="n">MinimumEigensolverResult</span><span class="p">,</span>
+        <span class="n">relaxed_results</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="n">MinimumEigensolverResult</span><span class="p">,</span> <span class="n">LegacyMinimumEigensolverResult</span>
+        <span class="p">],</span>
         <span class="n">rounding_results</span><span class="p">:</span> <span class="n">RoundingResult</span><span class="p">,</span>
         <span class="n">relaxed_results_offset</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="n">sense</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -119,7 +136,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sense</span> <span class="o">=</span> <span class="n">sense</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">relaxed_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MinimumEigensolverResult</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">relaxed_results</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">MinimumEigensolverResult</span><span class="p">,</span> <span class="n">LegacyMinimumEigensolverResult</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Variationally obtained ground state of the relaxed Hamiltonian&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relaxed_results</span>
 
@@ -131,7 +150,9 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">trace_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of expectation values, one corresponding to each decision variable&quot;&quot;&quot;</span>
-        <span class="n">trace_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relaxed_results</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span><span class="p">]</span>
+        <span class="n">trace_values</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_get_aux_operators_evaluated</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_relaxed_results</span><span class="p">)</span>
+        <span class="p">]</span>
         <span class="k">return</span> <span class="n">trace_values</span>
 
     <span class="nd">@property</span>
@@ -161,7 +182,7 @@
 
 <div class="viewcode-block" id="QuantumRandomAccessOptimizer.__init__"><a class="viewcode-back" href="../../stubs/qrao.QuantumRandomAccessOptimizer.html#qrao.QuantumRandomAccessOptimizer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">min_eigen_solver</span><span class="p">:</span> <span class="n">MinimumEigensolver</span><span class="p">,</span>
+        <span class="n">min_eigen_solver</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">MinimumEigensolver</span><span class="p">,</span> <span class="n">LegacyMinimumEigensolver</span><span class="p">],</span>
         <span class="n">encoding</span><span class="p">:</span> <span class="n">QuantumRandomAccessEncoding</span><span class="p">,</span>
         <span class="n">rounding_scheme</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RoundingScheme</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
@@ -185,12 +206,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rounding_scheme</span> <span class="o">=</span> <span class="n">rounding_scheme</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">min_eigen_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MinimumEigensolver</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">min_eigen_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">MinimumEigensolver</span><span class="p">,</span> <span class="n">LegacyMinimumEigensolver</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The minimum eigensolver.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_eigen_solver</span>
 
     <span class="nd">@min_eigen_solver</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">min_eigen_solver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_eigen_solver</span><span class="p">:</span> <span class="n">MinimumEigensolver</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">min_eigen_solver</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">min_eigen_solver</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">MinimumEigensolver</span><span class="p">,</span> <span class="n">LegacyMinimumEigensolver</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Set the minimum eigensolver.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">min_eigen_solver</span><span class="o">.</span><span class="n">supports_aux_operators</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
@@ -225,7 +248,11 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="s2">&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">solve_relaxed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">MinimumEigensolverResult</span><span class="p">,</span> <span class="n">RoundingContext</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">solve_relaxed</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span>
+        <span class="n">Union</span><span class="p">[</span><span class="n">MinimumEigensolverResult</span><span class="p">,</span> <span class="n">LegacyMinimumEigensolverResult</span><span class="p">],</span> <span class="n">RoundingContext</span>
+    <span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Solve the relaxed Hamiltonian given the ``encoding`` provided to the constructor.&quot;&quot;&quot;</span>
         <span class="c1"># Get the ordered list of operators that correspond to each decision</span>
         <span class="c1"># variable.  This line assumes the variables are numbered consecutively</span>
@@ -243,7 +270,7 @@
         <span class="n">stop_time_relaxed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">relaxed_results</span><span class="o">.</span><span class="n">time_taken</span> <span class="o">=</span> <span class="n">stop_time_relaxed</span> <span class="o">-</span> <span class="n">start_time_relaxed</span>
 
-        <span class="n">trace_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">relaxed_results</span><span class="o">.</span><span class="n">aux_operator_eigenvalues</span><span class="p">]</span>
+        <span class="n">trace_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_get_aux_operators_evaluated</span><span class="p">(</span><span class="n">relaxed_results</span><span class="p">)]</span>
 
         <span class="c1"># Collect inputs for rounding</span>
         <span class="c1"># double check later that there&#39;s no funny business with the</span>
@@ -259,10 +286,17 @@
             <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_eigen_solver</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">bind_parameters</span><span class="p">(</span>
                 <span class="n">relaxed_results</span><span class="o">.</span><span class="n">optimal_point</span>
             <span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_eigen_solver</span><span class="p">,</span> <span class="n">NumPyMinimumEigensolver</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_eigen_solver</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">NumPyMinimumEigensolver</span><span class="p">,</span> <span class="n">LegacyNumPyMinimumEigensolver</span><span class="p">),</span>
+        <span class="p">):</span>
             <span class="n">statevector</span> <span class="o">=</span> <span class="n">relaxed_results</span><span class="o">.</span><span class="n">eigenstate</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_eigen_solver</span><span class="p">,</span> <span class="n">LegacyNumPyMinimumEigensolver</span><span class="p">):</span>
+                <span class="c1"># statevector is a StateFn in this case, so we must convert it</span>
+                <span class="c1"># to a Statevector</span>
+                <span class="n">statevector</span> <span class="o">=</span> <span class="n">statevector</span><span class="o">.</span><span class="n">primitive</span>
             <span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encoding</span><span class="o">.</span><span class="n">num_qubits</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">statevector</span><span class="o">.</span><span class="n">primitive</span><span class="p">)</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">statevector</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">circuit</span> <span class="o">=</span> <span class="kc">None</span>
 

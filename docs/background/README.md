@@ -57,13 +57,13 @@ Crucially, a relaxation is only useful if there is some practical way to ***roun
 Quantum Random Access Codes were [first outlined in 1983 by Stephen Wiesner \[2\]](http://users.cms.caltech.edu/~vidick/teaching/120_qcrypto/wiesner.pdf) and were used in the context of communication complexity theory. We will not be using QRACs in the way they were originally concieved, instead we are co-opting them to define our quantum relaxations. For this reason will not provide a full introduction to RACs or QRACs, but encourage interested readers to seek out more information about them.
 
 ### $(1,1,1)$, $(2,1,p)$, and $(3,1,p)$ Quantum Random Access Codes
-A ($k,1,p$)-QRAC, is a scheme for embedding $k$ classical bits into a 1-qubit state, such that given a single copy of this state, you can recover any one of the $k$-bits with probability $p$ by performing some measurement. The simple quantum relaxation discussed in the previous section is an example of a trivial $(1,1,1)$-QRAC. For convenience, we will write the $(2,1,0.854)$ and $(3,1,0.789)$ QRACs as $(2,1,p)$ and $(3,1,p)$, respectively.
+A $(k,1,p)$-QRAC, is a scheme for embedding $k$ classical bits into a 1-qubit state, such that given a single copy of this state, you can recover any one of the $k$-bits with probability $p$ by performing some measurement. The simple quantum relaxation discussed in the previous section is an example of a trivial $(1,1,1)$-QRAC. For convenience, we will write the $(2,1,0.854)$ and $(3,1,0.789)$ QRACs as $(2,1,p)$ and $(3,1,p)$, respectively.
 
 As we generalize the simple example above, it will be helpful to write out single qubit states decomposed in the Hermitian basis of Pauli observables.
 
 $$\rho = \frac{1}{2}\left(I + aX + bY + cZ \right),\quad |a|^2 + |b|^2 + |c|^2 = 1$$
 
- The embeddings $F^{(1)}$,$F^{(2)}$, and $F^{(3)}$ associated respectively with the $(1,1,1), (2,1,p),$ and $(3,1,p)$ QRACs can now be written as follows:
+ The embeddings $F^{(1)}$, $F^{(2)}$, and $F^{(3)}$ associated respectively with the $(1,1,1), (2,1,p),$ and $(3,1,p)$ QRACs can now be written as follows:
 
 
 $$\begin{array}{l|ll} \text{QRAC} & &\text{Embedding into } \rho = \vert \psi(m)\rangle\langle\psi(m)\vert \\

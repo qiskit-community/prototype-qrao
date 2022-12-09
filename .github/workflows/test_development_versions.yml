@@ -36,7 +36,7 @@ jobs:
           # Second, update requirements[-dev].txt in place to use the
           # development (git) versions of all Qiskit packages.
           sed -i 's|^\(qiskit[A-Za-z-]*\).*|git+https://github.com/Qiskit/\1.git|' requirements-dev.txt requirements.txt
-          pip install tox
+          pip install 'tox<4'
       - name: Modify tox.ini for more thorough check
         shell: bash
         run: |

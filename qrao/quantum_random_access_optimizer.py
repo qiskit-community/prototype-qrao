@@ -28,7 +28,6 @@ from qiskit.algorithms.minimum_eigen_solvers import (
     MinimumEigensolverResult as LegacyMinimumEigensolverResult,
     NumPyMinimumEigensolver as LegacyNumPyMinimumEigensolver,
 )
-from qiskit.opflow import StateFn
 
 from qiskit_optimization.algorithms import (
     OptimizationAlgorithm,
@@ -251,9 +250,9 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             (NumPyMinimumEigensolver, LegacyNumPyMinimumEigensolver),
         ):
             statevector = relaxed_results.eigenstate
-            if isinstance(statevector, StateFn):
-                # This code path is triggered only with using
-                # LegacyNumPyMinimumEigensolver
+            if isinstance(self.min_eigen_solver, LegacyNumPyMinimumEigensolver):
+                # statevector is a StateFn in this case, so we must convert it
+                # to a Statevector
                 statevector = statevector.primitive
             circuit = QuantumCircuit(self.encoding.num_qubits)
             circuit.initialize(statevector)

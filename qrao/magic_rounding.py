@@ -40,14 +40,6 @@ _invalid_backend_names = [
     "pulse_simulator",
 ]
 
-# Prior to Qiskit Terra 0.20.1, the BasicAer and hardware backends fail if the
-# shots count is provided as an np.int64.  So, we define this function, which
-# will return an int if passed either, so that the int can then be passed as
-# the shots count. Fixed in https://github.com/Qiskit/qiskit-terra/pull/7824
-def _ensure_int(n: numbers.Integral) -> int:
-    """Convert int-like quantity (e.g. ``numpy.int64``) to int"""
-    return int(n)
-
 
 def _backend_name(backend: Backend) -> str:
     """Return the backend name in a way that is agnostic to Backend version"""
@@ -251,7 +243,7 @@ class MagicRounding(RoundingScheme):
         circuit_indices_by_shots: Dict[int, List[int]] = {}
         assert len(circuits) == len(basis_shots)
         for i, shots in enumerate(basis_shots):
-            circuit_indices_by_shots.setdefault(_ensure_int(shots), []).append(i)
+            circuit_indices_by_shots.setdefault(shots, []).append(i)
 
         basis_counts: List[Optional[Dict[str, int]]] = [None] * len(circuits)
         overall_shots = self.quantum_instance.run_config.shots

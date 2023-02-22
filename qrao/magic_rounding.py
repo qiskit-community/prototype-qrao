@@ -13,6 +13,7 @@
 """Magic bases rounding"""
 
 from typing import List, Dict, Tuple, Optional
+from collections import defaultdict
 import numbers
 import time
 import warnings
@@ -240,10 +241,10 @@ class MagicRounding(RoundingScheme):
         # Batch the circuits into jobs where each group has the same number of
         # shots, so that you can wait for the queue as few times as possible if
         # using hardware.
-        circuit_indices_by_shots: Dict[int, List[int]] = {}
+        circuit_indices_by_shots: Dict[int, List[int]] = defaultdict(list)
         assert len(circuits) == len(basis_shots)
         for i, shots in enumerate(basis_shots):
-            circuit_indices_by_shots.setdefault(shots, []).append(i)
+            circuit_indices_by_shots[shots].append(i)
 
         basis_counts: List[Optional[Dict[str, int]]] = [None] * len(circuits)
         overall_shots = self.quantum_instance.run_config.shots

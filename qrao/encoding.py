@@ -27,6 +27,7 @@ of such states.
 """
 
 from typing import Tuple, List, Dict, Optional, Union
+from collections import defaultdict
 from functools import reduce
 from itertools import chain
 
@@ -473,9 +474,9 @@ class QuantumRandomAccessEncoding:
         graph.add_nodes_from(range(num_nodes))
         graph.add_edges_from_no_data(list(zip(*np.where(quad != 0))))
         node2color = rx.graph_greedy_color(graph)
-        color2node: Dict[int, List[int]] = {}
+        color2node: Dict[int, List[int]] = defaultdict(list)
         for node, color in sorted(node2color.items()):
-            color2node.setdefault(color, []).append(node)
+            color2node[color].append(node)
         return color2node
 
     def encode(self, problem: QuadraticProgram) -> None:

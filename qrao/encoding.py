@@ -27,11 +27,12 @@ of such states.
 """
 
 from typing import Tuple, List, Dict, Optional, Union
+from collections import defaultdict
 from functools import reduce
 from itertools import chain
 
 import numpy as np
-import retworkx as rx
+import rustworkx as rx
 
 from qiskit import QuantumCircuit
 from qiskit.opflow import (
@@ -39,7 +40,6 @@ from qiskit.opflow import (
     X,
     Y,
     Z,
-    PauliOp,
     PauliSumOp,
     PrimitiveOp,
     CircuitOp,
@@ -48,6 +48,7 @@ from qiskit.opflow import (
     StateFn,
     CircuitStateFn,
 )
+from qiskit.quantum_info import SparsePauliOp
 from qiskit.utils.deprecation import deprecate_function
 
 from qiskit_optimization.problems.quadratic_program import QuadraticProgram
@@ -279,7 +280,7 @@ class QuantumRandomAccessEncoding:
             raise ValueError("max_vars_per_qubit must be 1, 2, or 3")
         self._ops = self.OPERATORS[max_vars_per_qubit - 1]
 
-        self._qubit_op: Optional[Union[PauliOp, PauliSumOp]] = None
+        self._qubit_op: Optional[PauliSumOp] = None
         self._problem: Optional[QuadraticProgram] = None
         self._var2op: Dict[int, Tuple[int, PrimitiveOp]] = {}
         self._q2vars: List[List[int]] = []
@@ -329,7 +330,7 @@ class QuantumRandomAccessEncoding:
         return (1 + 1 / np.sqrt(n)) / 2
 
     @property
-    def qubit_op(self) -> Union[PauliOp, PauliSumOp]:
+    def qubit_op(self) -> PauliSumOp:
         """Relaxed Hamiltonian operator"""
         if self._qubit_op is None:
             raise AttributeError(
@@ -405,7 +406,7 @@ class QuantumRandomAccessEncoding:
         # Pauli operator.  To generalize, we replace the `d` in that equation
         # with `d_prime`, defined as follows:
         d_prime = np.sqrt(self.max_vars_per_qubit) ** len(variables)
-        op = w * d_prime * self.term2op(*variables)
+        op = self.term2op(*variables).mul(w * d_prime)
         # We perform the following short-circuit *after* calling term2op so at
         # least we have confirmed that the user provided a valid variables list.
         if w == 0.0:
@@ -415,8 +416,8 @@ class QuantumRandomAccessEncoding:
         else:
             self._qubit_op += op
 
-    def term2op(self, *variables: int) -> PauliOp:
-        """Construct a ``PauliOp`` that is a product of encoded decision ``variable``\\(s).
+    def term2op(self, *variables: int) -> PauliSumOp:
+        """Construct a ``PauliSumOp`` that is a product of encoded decision ``variable``\\(s).
 
         The decision variables provided must all be encoded on different qubits.
         """
@@ -428,7 +429,9 @@ class QuantumRandomAccessEncoding:
                 raise RuntimeError(f"Collision of variables: {variables}")
             ops[pos] = op
             done.add(pos)
-        return reduce(lambda x, y: x ^ y, ops)
+        pauli_op = reduce(lambda x, y: x ^ y, ops)
+        # Convert from PauliOp to PauliSumOp
+        return PauliSumOp(SparsePauliOp(pauli_op.primitive, coeffs=[pauli_op.coeff]))
 
     @staticmethod
     def _generate_ising_terms(
@@ -446,6 +449,7 @@ class QuantumRandomAccessEncoding:
         # convert linear parts of the objective function into Hamiltonian.
         linear = np.zeros(num_vars)
         for idx, coef in problem.objective.linear.to_dict().items():
+            assert isinstance(idx, int)  # hint for mypy
             weight = coef * sense / 2
             linear[idx] -= weight
             offset += weight
@@ -453,6 +457,8 @@ class QuantumRandomAccessEncoding:
         # convert quadratic parts of the objective function into Hamiltonian.
         quad = np.zeros((num_vars, num_vars))
         for (i, j), coef in problem.objective.quadratic.to_dict().items():
+            assert isinstance(i, int)  # hint for mypy
+            assert isinstance(j, int)  # hint for mypy
             weight = coef * sense / 4
             if i == j:
                 linear[i] -= 2 * weight
@@ -473,9 +479,9 @@ class QuantumRandomAccessEncoding:
         graph.add_nodes_from(range(num_nodes))
         graph.add_edges_from_no_data(list(zip(*np.where(quad != 0))))
         node2color = rx.graph_greedy_color(graph)
-        color2node: Dict[int, List[int]] = {}
+        color2node: Dict[int, List[int]] = defaultdict(list)
         for node, color in sorted(node2color.items()):
-            color2node.setdefault(color, []).append(node)
+            color2node[color].append(node)
         return color2node
 
     def encode(self, problem: QuadraticProgram) -> None:

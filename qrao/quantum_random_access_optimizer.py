@@ -18,10 +18,15 @@ import time
 import numpy as np
 
 from qiskit import QuantumCircuit
-from qiskit.algorithms import (
+from qiskit.algorithms.minimum_eigensolvers import (
     MinimumEigensolver,
     MinimumEigensolverResult,
     NumPyMinimumEigensolver,
+)
+from qiskit.algorithms.minimum_eigen_solvers import (
+    MinimumEigensolver as LegacyMinimumEigensolver,
+    MinimumEigensolverResult as LegacyMinimumEigensolverResult,
+    NumPyMinimumEigensolver as LegacyNumPyMinimumEigensolver,
 )
 
 from qiskit_optimization.algorithms import (
@@ -37,6 +42,16 @@ from .rounding_common import RoundingScheme, RoundingContext, RoundingResult
 from .semideterministic_rounding import SemideterministicRounding
 
 
+def _get_aux_operators_evaluated(relaxed_results):
+    try:
+        # Must be using the new "minimum_eigensolvers"
+        # https://github.com/Qiskit/qiskit-terra/blob/main/releasenotes/notes/0.22/add-eigensolvers-with-primitives-8b3a9f55f5fd285f.yaml
+        return relaxed_results.aux_operators_evaluated
+    except AttributeError:
+        # Must be using the old (deprecated) "minimum_eigen_solvers"
+        return relaxed_results.aux_operator_eigenvalues
+
+
 class QuantumRandomAccessOptimizationResult(OptimizationResult):
     """Result of Quantum Random Access Optimization procedure."""
 
@@ -48,7 +63,9 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
         variables: List[Variable],
         status: OptimizationResultStatus,
         samples: Optional[List[SolutionSample]],
-        relaxed_results: MinimumEigensolverResult,
+        relaxed_results: Union[
+            MinimumEigensolverResult, LegacyMinimumEigensolverResult
+        ],
         rounding_results: RoundingResult,
         sense: int,
     ) -> None:
@@ -76,7 +93,9 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
         self._sense = sense
 
     @property
-    def relaxed_results(self) -> MinimumEigensolverResult:
+    def relaxed_results(
+        self,
+    ) -> Union[MinimumEigensolverResult, LegacyMinimumEigensolverResult]:
         """Variationally obtained ground state of the relaxed Hamiltonian"""
         return self._relaxed_results
 
@@ -88,7 +107,9 @@ class QuantumRandomAccessOptimizationResult(OptimizationResult):
     @property
     def trace_values(self):
         """List of expectation values, one corresponding to each decision variable"""
-        trace_values = [v[0] for v in self._relaxed_results.aux_operator_eigenvalues]
+        trace_values = [
+            v[0] for v in _get_aux_operators_evaluated(self._relaxed_results)
+        ]
         return trace_values
 
     @property
@@ -116,7 +137,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
 
     def __init__(
         self,
-        min_eigen_solver: MinimumEigensolver,
+        min_eigen_solver: Union[MinimumEigensolver, LegacyMinimumEigensolver],
         encoding: QuantumRandomAccessEncoding,
         rounding_scheme: Optional[RoundingScheme] = None,
     ):
@@ -140,12 +161,14 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         self.rounding_scheme = rounding_scheme
 
     @property
-    def min_eigen_solver(self) -> MinimumEigensolver:
+    def min_eigen_solver(self) -> Union[MinimumEigensolver, LegacyMinimumEigensolver]:
         """The minimum eigensolver."""
         return self._min_eigen_solver
 
     @min_eigen_solver.setter
-    def min_eigen_solver(self, min_eigen_solver: MinimumEigensolver) -> None:
+    def min_eigen_solver(
+        self, min_eigen_solver: Union[MinimumEigensolver, LegacyMinimumEigensolver]
+    ) -> None:
         """Set the minimum eigensolver."""
         if not min_eigen_solver.supports_aux_operators():
             raise TypeError(
@@ -180,7 +203,11 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             )
         return ""
 
-    def solve_relaxed(self) -> Tuple[MinimumEigensolverResult, RoundingContext]:
+    def solve_relaxed(
+        self,
+    ) -> Tuple[
+        Union[MinimumEigensolverResult, LegacyMinimumEigensolverResult], RoundingContext
+    ]:
         """Solve the relaxed Hamiltonian given the ``encoding`` provided to the constructor."""
         # Get the ordered list of operators that correspond to each decision
         # variable.  This line assumes the variables are numbered consecutively
@@ -198,7 +225,7 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
         stop_time_relaxed = time.time()
         relaxed_results.time_taken = stop_time_relaxed - start_time_relaxed
 
-        trace_values = [v[0] for v in relaxed_results.aux_operator_eigenvalues]
+        trace_values = [v[0] for v in _get_aux_operators_evaluated(relaxed_results)]
 
         # Collect inputs for rounding
         # double check later that there's no funny business with the
@@ -214,10 +241,17 @@ class QuantumRandomAccessOptimizer(OptimizationAlgorithm):
             circuit = self.min_eigen_solver.ansatz.bind_parameters(
                 relaxed_results.optimal_point
             )
-        elif isinstance(self.min_eigen_solver, NumPyMinimumEigensolver):
+        elif isinstance(
+            self.min_eigen_solver,
+            (NumPyMinimumEigensolver, LegacyNumPyMinimumEigensolver),
+        ):
             statevector = relaxed_results.eigenstate
+            if isinstance(self.min_eigen_solver, LegacyNumPyMinimumEigensolver):
+                # statevector is a StateFn in this case, so we must convert it
+                # to a Statevector
+                statevector = statevector.primitive
             circuit = QuantumCircuit(self.encoding.num_qubits)
-            circuit.initialize(statevector.primitive)
+            circuit.initialize(statevector)
         else:
             circuit = None
 

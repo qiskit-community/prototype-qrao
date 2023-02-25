@@ -21,7 +21,7 @@ with open("requirements.txt") as f:
     install_requires = f.read().splitlines()
 
 notebook_requirements = [
-    "cplex>=12.10",
+    "cplex>=12.10; platform_machine != 'arm64'",
     "tqdm[notebook]>=4.64",
 ]
 
@@ -32,8 +32,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     install_requires=install_requires,
-    python_requires=">=3.6",
-    setup_requires=["setuptools_scm"],
+    python_requires=">=3.7",
+    setup_requires=["setuptools_scm<7.0"],
     use_scm_version=True,
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -45,7 +45,6 @@ setuptools.setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

@@ -470,10 +470,10 @@ class QuantumRandomAccessEncoding:
     def _find_variable_partition(quad: np.ndarray) -> Dict[int, List[int]]:
         num_nodes = quad.shape[0]
         assert quad.shape == (num_nodes, num_nodes)
-        graph = rx.PyGraph()
+        graph = rx.PyGraph()  # type: ignore
         graph.add_nodes_from(range(num_nodes))
-        graph.add_edges_from_no_data(list(zip(*np.where(quad != 0))))
-        node2color = rx.graph_greedy_color(graph)
+        graph.add_edges_from_no_data(list(zip(*np.where(quad != 0))))  # type: ignore
+        node2color = rx.graph_greedy_color(graph)  # type: ignore
         color2node: Dict[int, List[int]] = defaultdict(list)
         for node, color in sorted(node2color.items()):
             color2node[color].append(node)

@@ -4,11 +4,29 @@ about: Create a report to help us improve 🤔.
 labels: bug
 ---
 
-<!-- ⚠️ If you do not respect this template, your issue will be closed -->
-<!-- ⚠️ Make sure to browse the opened and closed issues -->
+# Expected Behavior
 
-### Steps to reproduce the problem
+Please describe the behavior you are expecting.
 
-### What is the current behavior?
+# Current Behavior
 
-### What is the expected behavior?
+Please describe the current behavior of the software.
+
+# Failure Information
+
+Please provide information about the failure.
+
+## Steps to Reproduce
+
+A simple, runnable code snippet that reproduces the issue is highly preferred.
+
+## Context
+
+Please provide any relevant information about your setup. This is important in case the issue is not reproducible except for under certain conditions.
+
+* Python Version:
+* Operating System:
+
+## Failure Logs
+
+Please include any relevant log snippets or files here.

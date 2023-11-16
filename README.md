@@ -1,4 +1,6 @@
-:exclamation: _This repository [is being contributed upstream](https://github.com/qiskit-community/qiskit-optimization/pull/487), to [Qiskit Optimization](https://github.com/qiskit-community/qiskit-optimization).  Once [the relevant pull request](https://github.com/qiskit-community/qiskit-optimization/pull/487) is merged, the QRAO repository will be archived and discontinued._
+:exclamation: _This repository, which implements quantum random access optimization (QRAO), [has been contributed upstream](https://github.com/qiskit-community/qiskit-optimization/pull/487) to [Qiskit Optimization](https://github.com/qiskit-community/qiskit-optimization), and is included with Qiskit Optimization version 0.6.0 and higher.  Any future development will continue in the Qiskit Optimization repository instead of in this repository._
+
+----
 
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-informational)
 [![Python](https://img.shields.io/badge/Python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-informational)](https://www.python.org/)
